@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Andina Foods · Simulación ejecutiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16261f; --muted:#5d6b63; --line:#e3ddcf; --bg:#f6f2e8; --paper:#fffdf8;
+  --forest:#12372a; --forest2:#1f5a44; --gold:#d6a03c; --gold2:#f3d79a; --terra:#b5533c; --sky:#3f6f8f;
+  --ok:#2f7a4f; --okbg:#e6f3ea; --bad:#a7432f; --badbg:#f9e5df; --warn:#9a6a12; --warnbg:#fbf0d6;
+  --andina:#1f5a44; --asoc:#b5533c; --nm:#3f6f8f;
+  --r:16px; --shadow:0 10px 30px rgba(18,55,42,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;letter-spacing:-.01em;line-height:1.2;margin:0}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:30;background:rgba(255,253,248,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .in{max-width:1240px;margin:auto;display:flex;align-items:center;gap:18px;padding:10px 20px;flex-wrap:wrap}
+.brand{font-family:Fraunces,serif;font-weight:700;font-size:19px;color:var(--forest);white-space:nowrap}
+.brand b{color:var(--gold)}
+.steps{display:flex;gap:4px;flex:1;min-width:280px}
+.step{flex:1;border:0;background:#efe9da;color:var(--muted);padding:7px 6px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step.on{background:var(--forest);color:#fff}
+.step.done{background:#d8e7dc;color:var(--forest)}
+.step:disabled{opacity:.55;cursor:not-allowed}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;background:#efe9da;color:var(--muted)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:#aaa}
+.pill.ok .dot{background:var(--ok)} .pill.warn .dot{background:var(--gold)} .pill.bad .dot{background:var(--bad)}
+.gear{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 10px;font-size:13px;color:var(--forest)}
+main{max-width:1240px;margin:auto;padding:22px 20px 80px}
+.hero{border-radius:22px;padding:28px 30px;color:#fff;background:radial-gradient(1200px 300px at 85% -40%,rgba(214,160,60,.55),transparent 60%),linear-gradient(120deg,#0f2f24,#1f5a44);box-shadow:var(--shadow);margin-bottom:20px;position:relative;overflow:hidden}
+.hero .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold2);font-weight:700}
+.hero h1{font-size:clamp(26px,3.4vw,40px);margin:8px 0 8px;font-weight:600}
+.hero p{max-width:780px;color:#dfece4;margin:0}
+.hero.drought{background:radial-gradient(900px 300px at 80% -30%,rgba(255,196,100,.6),transparent 60%),linear-gradient(120deg,#5a2a17,#a2552d 55%,#d39b4a)}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px 22px;margin-bottom:16px}
+.card h2{font-size:21px;margin-bottom:4px}
+.card h3{font-size:16px;margin:2px 0 8px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+.role{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 9px;color:#fff}
+.role.andina{background:var(--andina)} .role.asoc{background:var(--asoc)} .role.nm{background:var(--nm)} .role.todos{background:#6b6253}
+.field{margin:12px 0}
+.field label{display:flex;justify-content:space-between;gap:10px;font-weight:600;font-size:13.5px;margin-bottom:6px}
+.field label .v{font-family:Fraunces,serif;font-size:16px;color:var(--forest);white-space:nowrap}
+.field .hint{font-size:12px;color:var(--muted);margin-top:4px}
+input[type=range]{width:100%;accent-color:var(--forest)}
+input[type=number],input[type=text],select,textarea{width:100%;border:1px solid #cfc7b4;border-radius:10px;padding:9px 11px;background:#fff}
+textarea{min-height:70px;resize:vertical}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid #cfc7b4;background:#fff;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--ink)}
+.seg button.on{background:var(--forest);border-color:var(--forest);color:#fff}
+.seg button:disabled{opacity:.5;cursor:not-allowed}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid var(--line);border-radius:10px;margin:6px 0;background:#fff;font-size:13.5px}
+.chk input{margin-top:3px;accent-color:var(--forest)}
+.chk small{display:block;color:var(--muted)}
+.lock{font-size:12px;color:var(--muted);background:#f1ece0;border-radius:10px;padding:8px 10px;margin:8px 0}
+.ratify{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.ratify button{border:2px dashed #cfc7b4;background:#fff;border-radius:12px;padding:9px 12px;font-weight:600;font-size:13px}
+.ratify button.on.andina{border-style:solid;border-color:var(--andina);background:#e6f0eb;color:var(--andina)}
+.ratify button.on.asoc{border-style:solid;border-color:var(--asoc);background:#f7e8e3;color:var(--asoc)}
+.ratify button.on.nm{border-style:solid;border-color:var(--nm);background:#e5eef4;color:var(--nm)}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;background:var(--forest);color:#fff}
+.btn.gold{background:var(--gold);color:#2b1d02}
+.btn.ghost{background:#fff;border:1px solid #cfc7b4;color:var(--forest)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.actors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:640px){.actors{grid-template-columns:1fr}}
+.actor{border-radius:14px;padding:14px;border:1px solid var(--line);background:#fff}
+.actor .name{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.actor .big{font-family:Fraunces,serif;font-size:22px;margin:4px 0 2px}
+.st{font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;display:inline-block;margin-top:6px}
+.actor .kv{grid-template-columns:1fr;gap:0}
+.actor .kv span:nth-child(odd){font-size:11.5px;color:var(--muted);margin-top:6px}
+.actor .kv span:nth-child(even){text-align:left}
+.field label.chk{display:flex;justify-content:flex-start;font-weight:500}
+.st.ok{background:var(--okbg);color:var(--ok)} .st.bad{background:var(--badbg);color:var(--bad)} .st.warn{background:var(--warnbg);color:var(--warn)}
+.impacto{margin-top:12px;border-radius:14px;padding:14px;border:1px solid #cfd8c2;border-top:4px solid #6f7d3c;background:#f6f8ef}
+.impacto .name{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#56622c}
+.impacto .kv span:nth-child(even){white-space:nowrap}
+.scroll{overflow-x:auto}
+.brief{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 16px}
+@media(max-width:760px){.brief{grid-template-columns:1fr}}
+.brief div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45}
+.brief b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.ayuda{margin:-4px 0 12px;font-size:12.5px}
+.ayuda summary{cursor:pointer;color:var(--andina);font-weight:600;list-style:none}
+.ayuda summary::-webkit-details-marker{display:none}
+.ayuda summary::before{content:'? ';display:inline-block;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;background:#e6f0eb;margin-right:4px;font-size:11px}
+.ayuda div{margin-top:6px;padding:8px 10px;background:#f6f8f4;border-radius:8px;color:#3d4a43;line-height:1.5}
+.tbl.mini{font-size:12px;margin:6px 0 4px}.tbl.mini th,.tbl.mini td{padding:5px 6px}
+.story p{font-size:14px;line-height:1.55;margin:0 0 8px}
+.storygrid{display:grid;grid-template-columns:1.1fr 1fr;gap:22px}
+@media(max-width:760px){.storygrid{grid-template-columns:1fr}}
+.story .kv{font-size:12.5px}
+.clock{display:inline-block;margin:-6px 0 14px;padding:6px 14px;border-radius:999px;background:#e6f0eb;color:var(--andina);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.clock.warn{background:#fbefd6;color:#9a6a12}.clock.over{background:#f7e3df;color:#a2402d}
+.pkgs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media(max-width:640px){.pkgs{grid-template-columns:1fr}}
+.pkg{text-align:left;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font:inherit}
+.pkg b{font-size:14px}.pkg span{font-size:12px;color:var(--muted)}.pkg em{font-style:normal;font-size:12px;font-weight:700;color:var(--andina)}
+.pkg.on{border:2px solid var(--andina);background:#e6f0eb}
+.adv{padding:12px 16px}.advtoggle{background:none;border:0;font:inherit;font-weight:700;cursor:pointer;padding:0;text-align:left;color:var(--ink,#1d2a24)}
+.pista{border:1px solid #e3c98a;background:#fdf7e8}.pista h3{color:#9a6a12}
+.actor.andina{border-top:4px solid var(--andina)} .actor.asoc{border-top:4px solid var(--asoc)} .actor.nm{border-top:4px solid var(--nm)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13px;margin-top:8px}
+.kv span:nth-child(even){font-weight:600;text-align:right}
+.empty{border:2px dashed #d9d0bc;border-radius:16px;padding:30px;text-align:center;color:var(--muted)}
+.empty b{display:block;font-family:Fraunces,serif;font-size:19px;color:var(--forest);margin-bottom:6px}
+.note{border-radius:12px;padding:12px 14px;font-size:13.5px;margin:10px 0;background:#eef3ec}
+.note.warn{background:var(--warnbg);color:#5e4208} .note.bad{background:var(--badbg);color:#6b2617}
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:640px){.groups{grid-template-columns:1fr}}
+.group{border-radius:14px;padding:12px;border:1px solid var(--line);background:#fff}
+.group.out{background:#fbefe9;border-color:#e9c3b6}
+.group .h{font-weight:700;font-size:13px}
+.group .n{font-family:Fraunces,serif;font-size:20px}
+.funnel{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.bar{height:26px;border-radius:8px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12px;font-weight:600;white-space:nowrap;min-width:fit-content}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+.tbl th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tbl td.n{text-align:right;white-space:nowrap}
+.log{max-height:180px;overflow:auto;font-size:12px;color:var(--muted)}
+.overlay{position:fixed;inset:0;background:rgba(15,35,27,.55);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+.modal{background:var(--paper);border-radius:20px;max-width:980px;width:100%;padding:22px 24px;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 16px}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-weight:600;font-size:13px}
+.tabs button.on{background:var(--forest);color:#fff;border-color:var(--forest)}
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.params label{font-size:12px;font-weight:600;color:var(--muted)}
+.reveal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#d79a45,#7a3418 60%,#2c120a);color:#fff;text-align:center;padding:30px;animation:fade .6s ease}
+.reveal h1{font-size:clamp(34px,6vw,64px);margin:10px 0}
+.reveal .facts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:22px 0}
+.reveal .fact{background:rgba(0,0,0,.25);border-radius:16px;padding:14px 18px;min-width:150px}
+.reveal .fact b{display:block;font-family:Fraunces,serif;font-size:30px}
+@keyframes fade{from{opacity:0;transform:scale(1.02)}to{opacity:1;transform:none}}
+.timeline{display:flex;gap:6px;margin:14px 0 4px}
+.timeline div{flex:1;border-radius:10px;padding:8px;font-size:12px;text-align:center;background:rgba(255,255,255,.14)}
+.timeline div.now{background:var(--gold);color:#2b1d02;font-weight:700}
+.small{font-size:12.5px;color:var(--muted)}
+.howto{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.howto div{display:grid;grid-template-columns:84px 1fr;gap:12px;align-items:baseline;font-size:14px}
+.howto b small{display:block;font-weight:600;font-size:12px;color:var(--muted)}
+.howto b{color:var(--forest);white-space:nowrap}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.foot{max-width:1240px;margin:auto;padding:0 20px 30px;font-size:12px;color:var(--muted)}
+.badge-n{display:inline-block;min-width:22px;text-align:center;border-radius:999px;background:#efe9da;font-size:11px;font-weight:700;padding:2px 6px;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="top"><div class="in">
+  <div class="brand">ANDINA <b>FOODS</b></div>
+  <div class="steps" id="steps"></div>
+  <span class="pill" id="sync"><span class="dot"></span><span id="syncTxt">Registro local</span></span>
+  <button class="gear" id="openFac" type="button">Facilitador</button>
+</div></div>
+<main id="app"></main>
+<div class="foot">Caso ficticio con fines docentes · INCAE Business School · AmCham Perú. Cifras en soles constantes; los resultados son estimaciones del modelo del caso, no estados financieros.</div>
+<div id="layer"></div>
+<script>
+/* ======== Configuración previa del facilitador (opcional) ========
+   Pegue aquí la URL del Web App de Google Apps Script y la clave para que todas las computadoras
+   registren automáticamente en la misma hoja de Google Sheets. */
+const PRESET = { sheetUrl: '', clave: '' };
+</script>
+<script>
+/* ===== Andina Foods · Modelo de cálculo A+B (soles constantes, sin descuento) ===== */
+const DEFAULT_CFG = {
+  familias: 25, haFam: 2,
+  yConv: 1.80, y1: 1.62, y2: 1.70, y3: 1.80,
+  cConv: 7200, c1: 8000, c2: 7800, c3: 7500,
+  inv: 1500, ahorro: 2000, pConv: 6000,
+  opConv: 1500, opCert: 2100, ventaConv: 8700,
+  setup: 90000,
+  certs: {
+    regenagri: { nombre: 'regenagri', inst: 12000, anual: 32000, anio: 3 },
+    regenified: { nombre: 'Certified Regenified', inst: 18000, anual: 42000, anio: 3 },
+    roc: { nombre: 'Regenerative Organic Certified (ROC)', inst: 65000, anual: 78000, anio: 4 }
+  },
+  nmRef: 11500, nmTecho: 11800, nmMin: 70, nmOpcionMax: 20,
+  // Caso B
+  grupos: [ { id: 'g1', nombre: 'Suelos mejor manejados', fam: 8, y: 1.62 },
+            { id: 'g2', nombre: 'Familias promedio', fam: 12, y: 1.35 },
+            { id: 'g3', nombre: 'Laderas expuestas', fam: 5, y: 0.92 } ],
+  factorSinMedidas: 1.20 / 1.35, contingencia: 900, spot: 7300,
+  aceptBase: 0.85, aceptMonitoreo: 0.05, aceptCapacitacion: 0.05,
+  ventaParalela: { ninguna: 0.25, sancion: 0.10, sancion_bono: 0.03 },
+  sac: 1000, umbralLiquidez: -1500, perdidaConvSequia: 0.30, yRecup: 1.80,
+  // Reglas de la alianza: costo (se reparte según gobAndinaPct) y efecto
+  gobComite: 3000,          // S/ por año, fijo (reuniones, viajes, actas)
+  gobMonitoreo: 80,         // S/ por ha y año, años 1 a 5 (visitas de campo y registros por lote)
+  gobCap1: 200, gobCap2: 100, // S/ por ha, capacitación en años 1 y 2
+  comiteParalela: 0.70,     // el comité reduce la venta a acopiadores a 70% de lo que sería
+  // Descomposición del costo regenerativo (Anexo 1): mano de obra extra y ahorro de insumos
+  manoObraExtra: 1000, insumos1: 200, insumos2: 400, insumos3: 700,
+  // Tiempos sugeridos por ronda (minutos) para una sesión de 60 minutos
+  minR1: 5, minR2: 17, minR3: 15, minR4: 6, minCierre: 12, pistaR2: 10, pistaR3: 8,
+  pin: 'incae'
+};
+
+const r0 = x => Math.round(x);
+function sum(a) { return a.reduce((s, v) => s + v, 0); }
+
+/* Distribuye las familias incluidas entre grupos: primero las más experimentadas */
+function asignarGrupos(cfg, fam) {
+  let rest = fam; return cfg.grupos.map(g => { const n = Math.max(0, Math.min(g.fam, rest)); rest -= n; return { ...g, fam: n }; });
+}
+
+/* Costo anual de las reglas de la alianza (total, antes de repartir) */
+function costoGob(cfg, cl, t, ha) {
+  cl = cl || {};
+  return (cl.comite ? cfg.gobComite : 0) + (cl.monitoreo ? cfg.gobMonitoreo * ha : 0)
+    + (cl.capacitacion ? (t === 1 ? cfg.gobCap1 : t === 2 ? cfg.gobCap2 : 0) * ha : 0);
+}
+const insumosEvitadosHa = (cfg, t) => t === 1 ? cfg.insumos1 : t === 2 ? cfg.insumos2 : cfg.insumos3;
+
+/* Año típico desde el año 6, si la alianza se renueva en las mismas condiciones.
+   Andina frente a seguir comprando en convencional; cada familia frente a seguir en convencional. */
+function anioTipico(cfg, d, famActivas) {
+  const fam = famActivas == null ? d.familias : famActivas;
+  if (!fam || !d.nmAutoriza || (d.esquema === 'roc' && !d.nmAceptaRetraso)) return null;
+  const ha = fam * cfg.haFam, tons = cfg.y3 * ha, toNM = Math.min(tons, cfg.nmMin + (d.nmExtra || 0)), exc = tons - toNM;
+  const cert = cfg.certs[d.esquema].anual, certA = cert * d.certAndinaPct / 100;
+  const gob = costoGob(cfg, d.clausulas, 6, ha), gobA = gob * (d.gobAndinaPct ?? 50) / 100;
+  const andina = toNM * (d.nmPrecio - d.p35 - cfg.opCert) + exc * (cfg.ventaConv - d.pExc - cfg.opCert) - certA - gobA
+    - cfg.yConv * ha * (cfg.ventaConv - cfg.pConv - cfg.opConv);
+  const prod = toNM * d.p35 + exc * d.pExc - cfg.c3 * ha - (cert - certA) - (gob - gobA) - ha * (cfg.yConv * cfg.pConv - cfg.cConv);
+  return { andina, familia: prod / fam };
+}
+
+/* ---------- Caso A: acuerdo de cinco años sin shock ---------- */
+function calcA(cfg, d) {
+  // d: {familias,p1,p2,p35,pExc,invAndinaPct,invModo:'anticipo'|'donacion',certAndinaPct,esquema,
+  //     nmPrecio,nmExtra,nmAutoriza,nmAceptaRetraso,fondo (S/ por t por parte), clausulas:{...}}
+  const ha = d.familias * cfg.haFam, cert = cfg.certs[d.esquema];
+  const Y = [cfg.y1, cfg.y2, cfg.y3, cfg.y3, cfg.y3], C = [cfg.c1, cfg.c2, cfg.c3, cfg.c3, cfg.c3];
+  const autoriza = d.nmAutoriza !== false;
+  const anioCert = cert.anio > 3 ? (d.nmAceptaRetraso ? cert.anio : 99) : 3;
+  const certCap = d.nmMin ?? cfg.nmMin;
+  const nmTot = cfg.nmMin + (d.nmExtra || 0);
+  const invTot = cfg.inv * ha, invA = invTot * d.invAndinaPct / 100, invP = invTot - invA;
+  const nCert = Math.max(0, 5 - (Math.min(anioCert, 6) - 1));
+  const recupAnual = d.invModo === 'anticipo' && invA > 0 ? invA / Math.max(1, Math.min(3, nCert || 3)) : 0;
+  const base = cfg.yConv * cfg.pConv - cfg.cConv; // margen conv por ha
+  const cl = d.clausulas || {}, gobPct = (d.gobAndinaPct ?? 50) / 100;
+  const fondoOn = !!cl.fondo && (d.fondo || 0) > 0;
+  const years = [];
+  let fondoAportado = 0; // aporte de cada parte (Andina = asociación)
+  for (let t = 1; t <= 5; t++) {
+    const y = Y[t - 1], c = C[t - 1], tons = y * ha;
+    const certificado = autoriza && t >= anioCert;
+    let revP, gmA, toNM = 0, exc = 0, p;
+    if (!certificado) {
+      p = t === 1 ? d.p1 : d.p2; revP = tons * p; gmA = tons * (cfg.ventaConv - p - cfg.opConv);
+    } else {
+      p = d.p35; toNM = Math.min(tons, nmTot); exc = tons - toNM;
+      revP = toNM * d.p35 + exc * d.pExc;
+      gmA = toNM * (d.nmPrecio - d.p35 - cfg.opCert) + exc * (cfg.ventaConv - d.pExc - cfg.opCert);
+    }
+    const certCost = cert.anual + (t === 1 ? cert.inst : 0);
+    const certA = certCost * d.certAndinaPct / 100, certP = certCost - certA;
+    const recup = (certificado && recupAnual) ? recupAnual : 0;
+    const gob = costoGob(cfg, cl, t, ha), gobA = gob * gobPct, gobP = gob - gobA;
+    const aporte = fondoOn && t <= 2 ? d.fondo * tons : 0; // cada parte aporta lo mismo
+    fondoAportado += aporte;
+    const devol = fondoOn && t === 5 ? fondoAportado : 0; // sin uso, el saldo vuelve a cada parte al final
+    const prod = revP - c * ha - (t === 1 ? invP : 0) - certP - recup - gobP - aporte + devol;
+    const andina = gmA - (t === 1 ? cfg.setup + invA : 0) - certA + recup - gobA - aporte + devol;
+    const benchA = cfg.yConv * ha * (cfg.ventaConv - cfg.pConv - cfg.opConv);
+    years.push({ t, y, tons, toNM, exc, certificado, prod, prodDelta: prod - base * ha, andina, benchA, recup, certA, certP, gob, gobA, gobP, aporte, devol });
+  }
+  const prod5 = sum(years.map(v => v.prodDelta)), andina5 = sum(years.map(v => v.andina)), bench5 = sum(years.map(v => v.benchA));
+  const liqNecesidad = (invP / d.familias) + (cfg.c1 - cfg.cConv) * cfg.haFam; // efectivo extra antes de la cosecha del año 1, por familia
+  const liqBrecha = liqNecesidad - cfg.ahorro;
+  const t3 = years[2];
+  const volOK = !autoriza ? false : anioCert <= 3 ? t3.toNM >= cfg.nmMin - 1e-9 : false;
+  const precioOK = d.nmPrecio <= cfg.nmTecho;
+  const gob5 = sum(years.map(v => v.gob));
+  const impacto = {
+    haRegen5: ha, familias: d.familias, haAnios: 5 * ha,
+    insumosEvitados: sum(years.map(v => insumosEvitadosHa(cfg, v.t) * ha)),
+    certificado: anioCert <= 5 && autoriza
+  };
+  return {
+    anio6: anioTipico(cfg, d), ha, years, anioCert, autoriza, gob5, gob5A: sum(years.map(v => v.gobA)), gob5P: sum(years.map(v => v.gobP)),
+    fondoPorParte: fondoAportado, impacto,
+    prod5, prodFam5: prod5 / d.familias, prodFamAnual: years.map(v => v.prodDelta / d.familias),
+    andina5, bench5, andinaVsVara: andina5 - bench5,
+    liqNecesidad, liqBrecha,
+    cond: {
+      andina: andina5 - bench5 >= 0,
+      productores: prod5 >= 0 && liqBrecha <= 0,
+      productoresValor: prod5 >= 0, liquidez: liqBrecha <= 0,
+      nordmarkt: volOK && precioOK && autoriza,
+      volumen: volOK, precio: precioOK
+    }
+  };
+}
+
+/* ---------- Caso B: sequía en el año 3, sobre el acuerdo firmado ---------- */
+function calcB(cfg, d, b) {
+  // b: {medidas:bool, contAndinaPct, usarFondo:bool, apoyoG3 (S/ por familia), diferirAnticipo:bool,
+  //     ajusteP3 (S/ por t), regla:'ninguna'|'sancion'|'sancion_bono', bono (S/ por t)}
+  const A = calcA(cfg, d);
+  const grupos = asignarGrupos(cfg, d.familias);
+  const cl = d.clausulas || {};
+  const acept = Math.min(1, cfg.aceptBase + (cl.monitoreo ? cfg.aceptMonitoreo : 0) + (cl.capacitacion ? cfg.aceptCapacitacion : 0));
+  const cert = cfg.certs[d.esquema];
+  const certificadoY3 = A.years[2].certificado;
+  const p3 = (certificadoY3 ? d.p35 : d.p2) + (b.ajusteP3 || 0) + (b.regla === 'sancion_bono' ? (b.bono || 0) : 0);
+  // Si el precio pactado iguala o supera al de los acopiadores, nadie vende fuera (con o sin sanciones)
+  let fraccionParalela = p3 >= cfg.spot ? 0 : (cfg.ventaParalela[b.regla] ?? 0.25);
+  if (cl.sanciones && b.regla === 'ninguna' && p3 < cfg.spot) fraccionParalela = cfg.ventaParalela.sancion;
+  if (cl.comite) fraccionParalela *= cfg.comiteParalela;
+  const fondo = 2 * A.fondoPorParte; // aportes ya cobrados en los años 1 y 2
+  const contTotal = b.medidas ? cfg.contingencia * A.ha : 0;
+  const deFondo = b.usarFondo ? Math.min(fondo, contTotal) : 0;
+  const contRest = contTotal - deFondo;
+  const contAndina = contRest * b.contAndinaPct / 100, contProd = contRest - contAndina;
+  const contProdHa = A.ha ? contProd / A.ha : 0;
+  const recupY3 = b.diferirAnticipo ? 0 : A.years[2].recup;
+  const recupFam = recupY3 / d.familias;
+  const certPFam = A.years[2].certP / d.familias;
+  const gobPFam = A.years[2].gobP / d.familias; // parte de las familias en el costo de las reglas, año 3
+  const factor = b.medidas ? 1 : cfg.factorSinMedidas;
+  const planY45Fam = (A.years[3].prod) / d.familias; // margen planificado por familia en años 4-5 (con su recuperación)
+  const convFam = (cfg.yConv * cfg.pConv - cfg.cConv) * cfg.haFam;
+  const res = grupos.filter(g => g.fam > 0).map(g => {
+    const y = g.y * factor;
+    const sac = g.id === 'g3' ? cfg.sac * cfg.haFam : 0;
+    const apoyo = g.id === 'g3' ? (b.apoyoG3 || 0) : 0;
+    const margenY3 = y * cfg.haFam * p3 - (cfg.c3 + contProdHa) * cfg.haFam - recupFam - certPFam - gobPFam + sac + apoyo;
+    // salida: vende al contado sin medidas, vuelve a convencional en años 4-5, devuelve saldo de anticipo
+    const ySalida = g.y * cfg.factorSinMedidas;
+    const saldoAnticipo = (d.invModo === 'anticipo' ? cfg.inv * cfg.haFam * d.invAndinaPct / 100 : 0); // saldo a devolver al salir
+    const salida = ySalida * cfg.haFam * cfg.spot - cfg.c3 * cfg.haFam + sac + 2 * convFam - saldoAnticipo;
+    const quedarse = margenY3 + 2 * planY45Fam;
+    const sale = margenY3 < cfg.umbralLiquidez || quedarse < salida;
+    const motivo = margenY3 < cfg.umbralLiquidez ? 'liquidez' : quedarse < salida ? 'conveniencia' : null;
+    return { ...g, y, margenY3, quedarse, salida, sale, motivo };
+  });
+  const quedan = res.filter(g => !g.sale);
+  const famQuedan = sum(quedan.map(g => g.fam));
+  const cosecha = sum(quedan.map(g => g.y * g.fam * cfg.haFam));
+  const paralela = cosecha * fraccionParalela;
+  const conforme = (cosecha - paralela) * acept;
+  const deficit = Math.max(0, cfg.nmMin - conforme);
+  const haQ3 = famQuedan * cfg.haFam;
+  const perdidaAlianza = haQ3 ? 1 - cosecha / (cfg.y3 * haQ3) : null;
+  return { A, grupos: res, famQuedan, cosecha, paralela, fraccionParalela, acept, conforme, deficit, p3,
+           contTotal, deFondo, contAndina, contProd, fondo, saldoFondo: fondo - deFondo, recupY3, certificadoY3, perdidaAlianza };
+}
+
+/* ---------- Cierre: cinco años con el resultado de la sequía y la decisión de NordMarkt ---------- */
+function calcFinal(cfg, d, b, nm) {
+  // nm: {concede:bool, mantieneOpcion:bool}
+  const B = calcB(cfg, d, b), A = B.A;
+  const continua = B.deficit <= 0 || nm.concede;
+  const nmTot = cfg.nmMin + (nm.mantieneOpcion ? (d.nmExtra || 0) : 0);
+  const haQ = B.famQuedan * cfg.haFam;
+  // Año 3 Andina: conforme vendido a NM (si certificado), resto de lo entregado a canal convencional
+  const invAFam = (d.invModo === 'anticipo') ? cfg.inv * cfg.haFam * d.invAndinaPct / 100 : 0;
+  const famSale = d.familias - B.famQuedan;
+  const recupQuedan = B.recupY3 * (B.famQuedan / d.familias);
+  const recupSalen = invAFam * famSale; // quien sale devuelve su saldo de anticipo
+  const Y3 = (() => {
+    const entregado = B.cosecha - B.paralela;
+    const toNM = B.certificadoY3 ? Math.min(B.conforme, nmTot) : 0;
+    const resto = entregado - toNM;
+    const gm = B.certificadoY3
+      ? toNM * (d.nmPrecio - B.p3 - cfg.opCert) + resto * (cfg.ventaConv - B.p3 - cfg.opCert)
+      : entregado * (cfg.ventaConv - B.p3 - cfg.opConv);
+    const certA = A.years[2].certA;
+    const g3 = B.grupos.find(g => g.id === 'g3' && !g.sale);
+    const apoyo = (b.apoyoG3 || 0) * (g3 ? g3.fam : 0);
+    const gobA = costoGob(cfg, d.clausulas, 3, haQ) * (d.gobAndinaPct ?? 50) / 100;
+    const andina = gm - certA - B.contAndina - apoyo + recupQuedan + recupSalen - gobA;
+    return { toNM, resto, entregado, andina, apoyo };
+  })();
+  // Productores año 3: margen real por grupo (quedan) o venta al contado (salen)
+  const certPFam = A.years[2].certP / d.familias;
+  const prodY3 = sum(B.grupos.map(g => {
+    if (!g.sale) return g.margenY3 * g.fam;
+    const sac = g.id === 'g3' ? cfg.sac * cfg.haFam : 0;
+    return (g.y * cfg.haFam * cfg.spot - cfg.c3 * cfg.haFam + sac - certPFam) * g.fam;
+  })) - recupSalen;
+  // El margen de quienes siguen ya descuenta su parte de las reglas calculada sobre todas las familias;
+  // se corrige a lo que realmente cuesta con las hectáreas que siguen.
+  const gobY3 = costoGob(cfg, d.clausulas, 3, haQ), gobPY3 = gobY3 * (1 - (d.gobAndinaPct ?? 50) / 100);
+  const prodY3Aj = prodY3 + (A.years[2].gobP / d.familias) * B.famQuedan - gobPY3;
+  // años 4-5
+  const anios45 = [];
+  for (let t = 4; t <= 5; t++) {
+    const extraRecup = b.diferirAnticipo ? A.years[2].recup / 2 : 0;
+    const certCost = cfg.certs[d.esquema].anual, certA = certCost * d.certAndinaPct / 100, certP = certCost - certA;
+    let andina, prodQ;
+    const devol = t === 5 ? B.saldoFondo / 2 : 0; // saldo no usado del fondo, a cada parte
+    const gobT = continua ? costoGob(cfg, d.clausulas, t, haQ) : 0, gobAT = gobT * (d.gobAndinaPct ?? 50) / 100, gobPT = gobT - gobAT;
+    if (continua && A.years[t - 1].certificado) {
+      const tons = cfg.yRecup * haQ, toNM = Math.min(tons, nmTot), exc = tons - toNM;
+      const recup = A.years[t - 1].recup * (B.famQuedan / d.familias) + extraRecup * (B.famQuedan / d.familias);
+      andina = toNM * (d.nmPrecio - d.p35 - cfg.opCert) + exc * (cfg.ventaConv - d.pExc - cfg.opCert) - certA + recup;
+      prodQ = toNM * d.p35 + exc * d.pExc - cfg.c3 * haQ - certP - recup;
+    } else {
+      const tons = cfg.yConv * haQ;
+      andina = tons * (cfg.ventaConv - cfg.pConv - cfg.opConv);
+      prodQ = tons * cfg.pConv - cfg.cConv * haQ;
+    }
+    const haS = A.ha - haQ; // quienes salieron: convencional con Andina
+    andina += cfg.yConv * haS * (cfg.ventaConv - cfg.pConv - cfg.opConv);
+    const prodS = haS * (cfg.yConv * cfg.pConv - cfg.cConv);
+    andina += devol - gobAT;
+    anios45.push({ t, andina, prod: prodQ + prodS + devol - gobPT, continua });
+  }
+  const baseHa = cfg.yConv * cfg.pConv - cfg.cConv;
+  const convSequiaHa = cfg.yConv * (1 - cfg.perdidaConvSequia) * cfg.pConv - cfg.cConv;
+  const benchY = [1, 2, 3, 4, 5].map(t => (t === 3 ? cfg.yConv * (1 - cfg.perdidaConvSequia) : cfg.yConv) * A.ha * (cfg.ventaConv - cfg.pConv - cfg.opConv));
+  const prodConv = [1, 2, 3, 4, 5].map(t => (t === 3 ? convSequiaHa : baseHa) * A.ha);
+  const andinaY = [A.years[0].andina, A.years[1].andina, Y3.andina, anios45[0].andina, anios45[1].andina];
+  const prodY = [A.years[0].prod, A.years[1].prod, prodY3Aj, anios45[0].prod, anios45[1].prod];
+  const andina5 = sum(andinaY), bench5 = sum(benchY), prod5 = sum(prodY), conv5 = sum(prodConv);
+  // mirando hacia adelante desde el año 3: continuar vs abandonar (referencia para el debate)
+  const andinaAdelante = andinaY[2] + andinaY[3] + andinaY[4], andinaAbandono = benchY[2] + benchY[3] + benchY[4];
+  // Suelo, agua y comunidad
+  const haQ45 = continua ? haQ : 0;
+  const g3 = B.grupos.find(g => g.id === 'g3');
+  const impacto = {
+    haRegen5: haQ45, familias: d.familias, familiasSiguen: continua ? B.famQuedan : 0, famQuedanY3: B.famQuedan,
+    laderas: g3 ? { fam: g3.fam, siguen: !g3.sale && continua } : null,
+    haAnios: 2 * A.ha + haQ + 2 * haQ45,
+    insumosEvitados: (insumosEvitadosHa(cfg, 1) + insumosEvitadosHa(cfg, 2)) * A.ha + insumosEvitadosHa(cfg, 3) * (haQ + 2 * haQ45),
+    perdidaAlianza: B.perdidaAlianza, perdidaConv: cfg.perdidaConvSequia
+  };
+  return { anio6: continua ? anioTipico(cfg, d, B.famQuedan) : null, andinaAdelante, andinaAbandono, B, continua, impacto, andinaY, benchY, prodY, prodConv, andina5, bench5, andinaVsVara: andina5 - bench5,
+           prod5, conv5, prodVsConv: prod5 - conv5, prodFamVsConv: (prod5 - conv5) / d.familias,
+           y3: Y3, anios45, nmTot };
+}
+
+/* Acuerdo de referencia (E2') para mesas sin acuerdo */
+const ACUERDO_REFERENCIA = { familias: 25, p1: 6600, p2: 6300, p35: 7000, pExc: 7000, invAndinaPct: 100, invModo: 'anticipo',
+  certAndinaPct: 100, gobAndinaPct: 50, paquete: 'minimo', esquema: 'regenagri', nmPrecio: 11700, nmExtra: 20, nmAutoriza: true, nmAceptaRetraso: false, fondo: 0,
+  clausulas: { comite: false, monitoreo: false, capacitacion: false, fuerzaMayor: true, sanciones: false, fondo: false } };
+
+if (typeof module !== 'undefined') module.exports = { DEFAULT_CFG, calcA, calcB, calcFinal, ACUERDO_REFERENCIA, asignarGrupos, costoGob, anioTipico };
+
+</script>
+<script>
+(function () {
+'use strict';
+/* ================== utilidades ================== */
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const miles = n => { const s = Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); return (n < 0 ? '−' : '') + s; };
+const S = n => (n < 0 ? '−S/' : 'S/') + miles(Math.abs(n)).replace('−', '');
+const Ssigned = n => (n > 0 ? '+' : n < 0 ? '−' : '') + 'S/' + miles(Math.abs(n));
+const t1 = n => (Math.round(n * 10) / 10).toString().replace('.', ',');
+const t2 = n => n.toFixed(2).replace('.', ',');
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { } }
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+function deepMerge(a, b) { const o = clone(a); for (const k in (b || {})) { if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && o[k] && typeof o[k] === 'object') o[k] = deepMerge(o[k], b[k]); else o[k] = b[k]; } return o; }
+
+/* ================== configuración y estado ================== */
+let CFG = deepMerge(DEFAULT_CFG, store.get('andina.cfg', {}));
+let CONN = Object.assign({ sheetUrl: PRESET.sheetUrl || '', clave: PRESET.clave || '' }, store.get('andina.conn', {}));
+if (PRESET.sheetUrl && !store.get('andina.conn', {}).sheetUrl) CONN.sheetUrl = PRESET.sheetUrl;
+
+const ACUERDO_INICIAL = { familias: 25, p1: 6000, p2: 6000, p35: 6600, pExc: 6000, invAndinaPct: 0, invModo: 'anticipo',
+  certAndinaPct: 100, gobAndinaPct: 50, paquete: 'ninguno', pExcLibre: false, esquema: 'regenagri', nmPrecio: 11500, nmExtra: 0, nmAutoriza: true, nmAceptaRetraso: false, fondo: 0,
+  clausulas: { comite: false, monitoreo: false, capacitacion: false, fuerzaMayor: false, sanciones: false, fondo: false } };
+const B_INICIAL = { medidas: true, contAndinaPct: 50, usarFondo: false, apoyoG3: 0, diferirAnticipo: false, ajusteP3: 0, regla: 'ninguna', bono: 0 };
+const COMPROMISOS = [
+  ['informe', 'Informe documentado de causa extraordinaria (datos de lluvia y rendimiento por parcela)'],
+  ['registro', 'Registro verificable de entregas por familia y por lote'],
+  ['reposicion', 'Compromiso de reponer el déficit en los años 4 y 5'],
+  ['fondoPlan', 'Fondo de contingencia con aportes de Andina y de la asociación'],
+  ['monitoreoPlan', 'Monitoreo conjunto con visitas de campo antes de la cosecha'],
+  ['permanencia', 'Acuerdo de permanencia firmado por las familias que continúan']
+];
+function estadoNuevo() {
+  return { mesa: '', reps: { andina: '', asoc: '', nm: '' }, ronda: 0, max: 0,
+    acuerdo: clone(ACUERDO_INICIAL), ratif: { r1: {}, r2: {}, r3: {}, r4: {} }, calc: {}, intentos: { r1: 0, r2: 0, r3: 0, r4: 0 },
+    firmado: null, sinAcuerdoA: false, retiro: null, retiroUI: { quien: '', motivo: '' }, b: clone(B_INICIAL), revelado: false,
+    r4: { compromisos: [], solicitud: 'reprogramar', texto: '', concede: null, mantieneOpcion: true },
+    cierre: { crea: '', distribuye: '', captura: '', aprendizaje: '', etapa: '' }, log: [],
+    ui: { advA: false, advB: false, pistaR2: false, pistaR3: false }, tInicio: {} };
+}
+let ST = deepMerge(estadoNuevo(), store.get('andina.estado', {}));
+function save() { store.set('andina.estado', ST); }
+function log(txt) { ST.log.unshift({ t: new Date().toISOString(), txt }); ST.log = ST.log.slice(0, 120); }
+
+/* ================== registro en Google Sheets ================== */
+let queue = store.get('andina.cola', []);
+function setSync(cls, txt) { const p = $('sync'); p.className = 'pill ' + cls; $('syncTxt').textContent = txt; }
+function refreshSyncPill() {
+  if (!CONN.sheetUrl) setSync('', 'Registro solo local');
+  else if (queue.length) setSync('warn', queue.length + ' pendiente' + (queue.length > 1 ? 's' : ''));
+  else setSync('ok', 'Registrando en Sheets');
+}
+function enviar(evento, extra) {
+  const payload = { clave: CONN.clave, mesa: ST.mesa, ronda: ST.ronda, evento, fecha: new Date().toISOString(),
+    resumen: resumen(), estado: estadoFinal(), extra: extra || null };
+  queue.push(payload); store.set('andina.cola', queue); flush();
+}
+let flushing = false;
+async function flush() {
+  refreshSyncPill();
+  if (!CONN.sheetUrl || flushing || !queue.length) return;
+  flushing = true;
+  try {
+    while (queue.length) {
+      await fetch(CONN.sheetUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(queue[0]) });
+      queue.shift(); store.set('andina.cola', queue);
+    }
+    setSync('ok', 'Registrado en Sheets');
+  } catch (e) {
+    setSync('bad', 'Sin conexión · ' + queue.length + ' en cola');
+  }
+  flushing = false;
+}
+window.addEventListener('online', flush);
+setInterval(flush, 30000);
+
+/* ================== cálculo por ronda ================== */
+const acuerdoVigente = () => ST.firmado || ST.acuerdo;
+function resumen() {
+  const a = acuerdoVigente(); const out = { familias: a.familias, p1: a.p1, p2: a.p2, p35: a.p35, esquema: a.esquema, nmPrecio: a.nmPrecio, nmExtra: a.nmExtra,
+    invAndinaPct: a.invAndinaPct, invModo: a.invModo, certAndinaPct: a.certAndinaPct, firmado: !!ST.firmado, sinAcuerdoA: ST.sinAcuerdoA, retiro: ST.retiro ? ST.retiro.quien : null };
+  const rA = ST.calc.r2 || ST.calc.r1;
+  if (rA) Object.assign(out, { A_andinaVsVara: Math.round(rA.andinaVsVara), A_prodFam5: Math.round(rA.prodFam5), A_costoReglas5: Math.round(rA.gob5 || 0) });
+  if (ST.calc.r4) Object.assign(out, { final_andinaVsVara: Math.round(ST.calc.r4.andinaVsVara), final_prodFamVsConv: Math.round(ST.calc.r4.prodFamVsConv),
+    conforme_t: Math.round(ST.calc.r4.B.conforme * 10) / 10, familiasQuedan: ST.calc.r4.B.famQuedan, nmConcede: ST.r4.concede, continua: ST.calc.r4.continua,
+    haRegenerativasAnio5: ST.calc.r4.impacto ? ST.calc.r4.impacto.haRegen5 : null });
+  return out;
+}
+function estadoFinal() {
+  /* Estado estándar para la sesión C (se completa a medida que avanzan las rondas) */
+  const a = acuerdoVigente(); const F = ST.calc.r4; const B = F ? F.B : (ST.calc.r3 || null);
+  return {
+    version: 'andina-ab-1.0', mesa: ST.mesa, rondaAlcanzada: ST.max,
+    acuerdoA: { firmado: !!ST.firmado, porDefecto: ST.sinAcuerdoA, terminos: a, retiro: ST.retiro },
+    gobernanza: Object.keys(a.clausulas || {}).filter(k => a.clausulas[k]),
+    sequia: B ? { medidas: ST.b.medidas, contingenciaAndinaPct: ST.b.contAndinaPct, usoFondo: Math.round(B.deFondo || 0), saldoFondo: Math.round(B.saldoFondo || 0), apoyoG3PorFamilia: ST.b.apoyoG3,
+      diferirAnticipo: ST.b.diferirAnticipo, ajusteP3: ST.b.ajusteP3, reglaVentaParalela: ST.b.regla, bono: ST.b.bono } : null,
+    resultadoB: B ? { familiasQuedan: B.famQuedan, familiasSalen: a.familias - B.famQuedan, hectareasQuedan: B.famQuedan * CFG.haFam,
+      cosecha_t: +B.cosecha.toFixed(1), ventaParalela_t: +B.paralela.toFixed(1), aceptacion: B.acept, conforme_t: +B.conforme.toFixed(1), deficit_t: +B.deficit.toFixed(1),
+      grupos: B.grupos.map(g => ({ id: g.id, familias: g.fam, rend: +g.y.toFixed(2), margenY3Familia: Math.round(g.margenY3), sale: g.sale, motivo: g.motivo })) } : null,
+    nordmarkt: F ? { compromisosPresentados: ST.r4.compromisos, solicitud: ST.r4.solicitud, concede: ST.r4.concede, mantieneOpcion: ST.r4.mantieneOpcion, alianzaContinua: F.continua } : null,
+    economia5anios: F ? { andinaPorAnio: F.andinaY.map(Math.round), varaPorAnio: F.benchY.map(Math.round), andinaVsVara: Math.round(F.andinaVsVara),
+      productoresPorAnio: F.prodY.map(Math.round), convencionalPorAnio: F.prodConv.map(Math.round), productoresVsConv: Math.round(F.prodVsConv),
+      porFamiliaVsConv: Math.round(F.prodFamVsConv), andinaContinuarAnios3a5: Math.round(F.andinaAdelante), andinaAbandonarAnios3a5: Math.round(F.andinaAbandono) } : null,
+    sueloAguaComunidad: F && F.impacto ? { hectareasRegenerativasAnio5: F.impacto.haRegen5, familiasSiguenAnio5: F.impacto.familiasSiguen,
+      hectareaAniosBajoPracticas: F.impacto.haAnios, insumosSinteticosEvitados: Math.round(F.impacto.insumosEvitados),
+      perdidaSequiaAlianza: F.impacto.perdidaAlianza != null ? +F.impacto.perdidaAlianza.toFixed(3) : null, perdidaSequiaConvencional: F.impacto.perdidaConv,
+      laderasSiguen: F.impacto.laderas ? F.impacto.laderas.siguen : null } : null,
+    confianza: B ? { ventaParalela_t: +B.paralela.toFixed(1), salidas: B.grupos.filter(g => g.sale).map(g => g.id), intentosPorRonda: ST.intentos } : null,
+    reflexion: ST.cierre
+  };
+}
+
+/* ================== paquetes de reglas ================== */
+const PAQUETES = {
+  ninguno: { nombre: 'Ninguna', desc: 'Sin reglas escritas.', cl: {} },
+  minimo: { nombre: 'Mínimo', desc: 'Cláusula de revisión ante eventos climáticos. Sin costo.', cl: { fuerzaMayor: true } },
+  prevencion: { nombre: 'Prevención', desc: 'Mínimo + monitoreo por lote, capacitación y sanciones graduales.', cl: { fuerzaMayor: true, monitoreo: true, capacitacion: true, sanciones: true } },
+  completo: { nombre: 'Gobernanza completa', desc: 'Prevención + comité conjunto + fondo de contingencia (S/100/t por parte).', cl: { fuerzaMayor: true, monitoreo: true, capacitacion: true, sanciones: true, comite: true, fondo: true }, fondo: 100 }
+};
+function aplicarPaquete(k) {
+  const p = PAQUETES[k]; if (!p) return;
+  ['comite', 'monitoreo', 'capacitacion', 'fuerzaMayor', 'sanciones', 'fondo'].forEach(c => ST.acuerdo.clausulas[c] = !!p.cl[c]);
+  ST.acuerdo.fondo = p.fondo || 0;
+}
+function costoPaquete5(cl, fam) { let t = 0; for (let y = 1; y <= 5; y++) t += costoGob(CFG, cl, y, fam * CFG.haFam); return t; }
+
+/* ================== reloj por ronda ================== */
+const MIN_RONDA = () => [0, CFG.minR1, CFG.minR2, CFG.minR3, CFG.minR4, CFG.minCierre];
+function marcarInicio(i) { if (i >= 1 && !ST.tInicio['r' + i]) ST.tInicio['r' + i] = Date.now(); }
+const minutosEn = i => ST.tInicio['r' + i] ? (Date.now() - ST.tInicio['r' + i]) / 60000 : 0;
+function textoReloj(i) {
+  const tot = MIN_RONDA()[i]; if (!tot) return '';
+  const rest = tot * 60 - Math.floor(minutosEn(i) * 60);
+  if (rest <= 0) return { cls: 'over', txt: `Tiempo sugerido cumplido (${tot} min)` };
+  const m = Math.floor(rest / 60), s = String(rest % 60).padStart(2, '0');
+  return { cls: rest <= 120 ? 'warn' : '', txt: `Quedan ${m}:${s} de ${tot} min` };
+}
+function reloj(i) { const t = textoReloj(i); return t ? `<div class="clock ${t.cls}" id="reloj">${t.txt}</div>` : ''; }
+setInterval(() => {
+  const el = document.getElementById('reloj'); if (el) { const t = textoReloj(ST.ronda); if (t) { el.textContent = t.txt; el.className = 'clock ' + t.cls; } }
+  const p = document.getElementById('pistaSlot'); if (p && !p.dataset.shown && pistaDisponible(ST.ronda)) render();
+}, 1000);
+function exitoA(res) { return res && res.andinaVsVara >= 0 && res.prodFam5 >= 0 && Object.values(res.cond).every(Boolean); }
+function pistaDisponible(r) {
+  if (r === 2) return !exitoA(ST.calc.r2) && (minutosEn(2) >= CFG.pistaR2 || ST.intentos.r2 >= 3);
+  if (r === 3) return minutosEn(3) >= CFG.pistaR3 || ST.intentos.r3 >= 3;
+  return false;
+}
+const PISTAS = {
+  2: 'Ningún acuerdo funciona solo con el dinero de Andina y las familias: el pastel lo agranda NordMarkt. Prueben un precio de NordMarkt entre S/11.600 y S/11.800 con la opción de 20 t, y repartan ese aumento entre Andina y el precio certificado. Si Andina adelanta la inversión, las familias no necesitan caja antes de cosechar. Mantener igual el precio de los años 1 y 2 suele ser más fácil de aceptar para la asociación.',
+  3: 'Miren primero a las familias de laderas: si salen, el déficit se dispara. Después, piensen qué haría que nadie quiera vender a los acopiadores de Juliaca.'
+};
+function pistaCard(r) {
+  if (!pistaDisponible(r)) return `<div id="pistaSlot"></div>`;
+  const k = 'pistaR' + r;
+  return `<div class="card pista" id="pistaSlot" data-shown="1"><h3>Pista</h3>${ST.ui[k] ? `<p>${PISTAS[r]}</p>` : `<p class="sub">Si la mesa está trabada, pueden abrir una pista. Quedará registrado.</p><button class="btn ghost" type="button" id="verPista">Ver pista</button>`}</div>`;
+}
+
+/* ================== explicaciones ================== */
+function ayuda(key, txt) {
+  const open = ST.ui.ayuda && ST.ui.ayuda[key];
+  return `<details class="ayuda" data-ayuda="${key}" ${open ? 'open' : ''}><summary>¿Qué mueve esta decisión?</summary><div>${txt}</div></details>`;
+}
+document.addEventListener('toggle', e => { const d = e.target; if (d && d.dataset && d.dataset.ayuda) { ST.ui.ayuda = ST.ui.ayuda || {}; ST.ui.ayuda[d.dataset.ayuda] = d.open; save(); } }, true);
+const BRIEF = {
+  1: ['Qué se decide', 'Precios al productor, quién financia la transición, la certificación y las reglas de la alianza.',
+      'Quién decide', 'Andina y la asociación. NordMarkt observa: su precio (S/11.500) y su mínimo (70 t) están fijos en esta ronda.',
+      'Qué es éxito', 'Que Andina supere la vara del directorio y que las familias no queden peor que en convencional. Es probable que solos no lo logren: eso también es un resultado.'],
+  2: ['Qué se decide', 'Lo mismo que en la ronda 1, más el precio que paga NordMarkt, la opción de volumen adicional y si autoriza el esquema.',
+      'Quién decide', 'Las tres partes. Cada una ratifica antes de calcular.',
+      'Qué es éxito', 'Un acuerdo que los tres puedan firmar: Andina sobre su vara, familias sobre convencional y NordMarkt con 70 t certificadas desde el año 3, sin pasar su techo. Retirarse también es una decisión válida.'],
+  3: ['Qué se decide', 'Cómo responder a la sequía: medidas de contingencia y quién las paga, apoyo a las familias de laderas y qué hacer con la venta a acopiadores.',
+      'Quién decide', 'Andina y la asociación. NordMarkt espera la propuesta.',
+      'Qué es éxito', 'Que las familias sigan en el programa y llegar lo más cerca posible de 70 t conformes. El acuerdo firmado en la ronda 2 sigue vigente.'],
+  4: ['Qué se decide', 'Qué compromisos y qué excepción le piden a NordMarkt, y si NordMarkt la aprueba.',
+      'Quién decide', 'Andina y la asociación presentan; NordMarkt decide según su hoja confidencial.',
+      'Qué es éxito', 'Una propuesta creíble y verificable. Sin excepción aprobada, NordMarkt puede terminar la alianza antes del año 4.'],
+  5: ['Qué se decide', 'Nada nuevo: es el momento de mirar qué pasó.',
+      'Quién', 'Toda la mesa, junta.',
+      'Qué es éxito', 'Una matriz honesta: quién aportó, quién asumió el riesgo y quién se quedó con el valor, incluidos el suelo, el agua y la comunidad.']
+};
+function brief(r) { const b = BRIEF[r]; if (!b) return '';
+  return `<div class="brief">${[0, 2, 4].map(i => `<div><b>${b[i]}</b><span>${b[i + 1]}</span></div>`).join('')}</div>`; }
+function tablaEsquemas() {
+  const nmTxt = { regenagri: 'Lo acepta si lo autoriza', regenified: 'Lo acepta si lo autoriza', roc: 'Llega tarde: no hay quinua certificada en el año 3' };
+  return `<table class="tbl mini"><tr><th>Esquema</th><th>Instalación</th><th>Cada año</th><th>Certifica desde</th><th>NordMarkt</th></tr>${Object.entries(CFG.certs).map(([k, c]) =>
+    `<tr><td>${esc(k === 'roc' ? 'ROC' : c.nombre)}</td><td class="n">${S(c.inst)}</td><td class="n">${S(c.anual)}</td><td>Año ${c.anio}</td><td>${nmTxt[k]}</td></tr>`).join('')}</table>
+  <div class="small" style="margin-bottom:8px">Costos para las 25 familias juntas. ROC exige además certificación orgánica previa.</div>`;
+}
+
+/* ================== componentes ================== */
+const ROLES = { andina: 'Andina', asoc: 'Asociación', nm: 'NordMarkt', todos: 'Mesa' };
+const roleTag = r => `<span class="role ${r}">${ROLES[r]}</span>`;
+function slider(path, label, min, max, step, fmt, hint, disabled) {
+  const v = getPath(path);
+  return `<div class="field"><label for="f_${path}"><span>${label}</span><span class="v" id="v_${path}">${fmt(v)}</span></label>
+  <input type="range" id="f_${path}" data-path="${path}" data-fmt="${fmt.name}" min="${min}" max="${max}" step="${step}" value="${v}" ${disabled ? 'disabled' : ''}>
+  ${hint ? `<div class="hint">${hint}</div>` : ''}</div>`;
+}
+function seg(path, label, opts, disabled, hint) {
+  const v = getPath(path);
+  return `<div class="field"><label><span>${label}</span></label><div class="seg">${opts.map(([val, txt]) =>
+    `<button type="button" data-seg="${path}" data-val='${JSON.stringify(val)}' class="${JSON.stringify(v) === JSON.stringify(val) ? 'on' : ''}" ${disabled ? 'disabled' : ''}>${txt}</button>`).join('')}</div>${hint ? `<div class="hint">${hint}</div>` : ''}</div>`;
+}
+function chk(path, label, small, disabled) {
+  return `<label class="chk"><input type="checkbox" data-chk="${path}" ${getPath(path) ? 'checked' : ''} ${disabled ? 'disabled' : ''}><span>${label}${small ? `<small>${small}</small>` : ''}</span></label>`;
+}
+function getPath(p) { return p.split('.').reduce((o, k) => (o == null ? undefined : o[k]), ST); }
+function setPath(p, v) { const ks = p.split('.'); let o = ST; ks.slice(0, -1).forEach(k => o = o[k]); o[ks[ks.length - 1]] = v; }
+const FMT = { soles: v => S(+v), pct: v => v + '%', fam: v => v + ' familias', ton: v => v + ' t', solesT: v => S(+v) + '/t', solesFam: v => S(+v) + ' por familia', fondo: v => S(+v) + '/t por parte' };
+Object.entries(FMT).forEach(([k, f]) => Object.defineProperty(f, 'name', { value: k }));
+
+function ratifyBar(r, roles) {
+  const rr = ST.ratif[r] || {};
+  return `<div class="ratify">${roles.map(x => `<button type="button" class="${x} ${rr[x] ? 'on' : ''}" data-ratif="${r}.${x}">${rr[x] ? '✓ ' : ''}${ROLES[x]} ${rr[x] ? 'ratificó' : 'ratifica'}</button>`).join('')}</div>`;
+}
+const allRatified = (r, roles) => roles.every(x => (ST.ratif[r] || {})[x]);
+
+function barChart(years, series, opts = {}) {
+  const W = 560, H = 210, P = { l: 58, r: 10, t: 14, b: 28 }, n = years.length, k = series.length;
+  const vals = series.flatMap(s => s.data); let mx = Math.max(0, ...vals), mn = Math.min(0, ...vals);
+  if (mx === mn) mx = mn + 1; const pad = (mx - mn) * 0.08; mx += pad; mn -= mn < 0 ? pad : 0;
+  const y = v => P.t + (mx - v) / (mx - mn) * (H - P.t - P.b);
+  const bw = (W - P.l - P.r) / n, gw = bw * 0.72, sw = gw / k;
+  let g = '';
+  const ticks = 4; for (let i = 0; i <= ticks; i++) { const v = mn + (mx - mn) * i / ticks; g += `<line x1="${P.l}" x2="${W - P.r}" y1="${y(v)}" y2="${y(v)}" stroke="#ece6d8"/><text x="${P.l - 6}" y="${y(v) + 4}" font-size="10" text-anchor="end" fill="#7a786f">${miles(Math.round(v / 1000))}k</text>`; }
+  g += `<line x1="${P.l}" x2="${W - P.r}" y1="${y(0)}" y2="${y(0)}" stroke="#9a937f"/>`;
+  years.forEach((lab, i) => {
+    const x0 = P.l + i * bw + (bw - gw) / 2;
+    series.forEach((s, j) => { const v = s.data[i], yy = Math.min(y(v), y(0)), h = Math.abs(y(v) - y(0));
+      g += `<rect x="${x0 + j * sw + 1}" y="${yy}" width="${sw - 2}" height="${Math.max(1, h)}" rx="3" fill="${s.color}" ${s.dash ? 'fill-opacity=".35" stroke="' + s.color + '" stroke-dasharray="3 2"' : ''}><title>${s.name} · ${lab}: ${S(v)}</title></rect>`; });
+    g += `<text x="${P.l + i * bw + bw / 2}" y="${H - 8}" font-size="11" text-anchor="middle" fill="#5d6b63">${lab}</text>`;
+  });
+  if (opts.shock != null) { const x = P.l + opts.shock * bw; g += `<rect x="${x}" y="${P.t}" width="${bw}" height="${H - P.t - P.b}" fill="#d6a03c" opacity=".12"/><text x="${x + bw / 2}" y="${P.t + 10}" font-size="10" text-anchor="middle" fill="#9a6a12">sequía</text>`; }
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.label || 'Gráfico')}">${g}</svg>
+  <div class="legend">${series.map(s => `<span><i style="background:${s.color}${s.dash ? ';opacity:.45' : ''}"></i>${s.name}</span>`).join('')}</div>`;
+}
+
+/* ================== pantallas ================== */
+const STEPS = ['Inicio', '1 · Acuerdo bilateral', '2 · Acuerdo tripartito', '3 · La sequía', '4 · Propuesta a NordMarkt', 'Cierre'];
+function renderSteps() {
+  $('steps').innerHTML = STEPS.map((s, i) => `<button type="button" class="step ${i === ST.ronda ? 'on' : i < ST.ronda || i <= ST.max ? 'done' : ''}" data-go="${i}" ${i > ST.max || bloqueada(i) ? 'disabled' : ''}>${s}</button>`).join('');
+}
+const bloqueada = i => (i === 3 || i === 4) && !ST.firmado;
+function go(i) { ST.ronda = i; ST.max = Math.max(ST.max, i); marcarInicio(i); save(); render(); window.scrollTo(0, 0); }
+
+function render() {
+  renderSteps(); refreshSyncPill();
+  const r = ST.ronda;
+  $('app').innerHTML = r === 0 ? vInicio() : r === 1 ? vR1() : r === 2 ? vR2() : r === 3 ? vR3() : r === 4 ? vR4() : vCierre();
+}
+
+/* ---------- Inicio ---------- */
+function vInicio() {
+  return `<section class="hero"><div class="eyebrow">Simulación ejecutiva · Estrategias sostenibles y creación de valor</div>
+  <h1>¿Quién financia la promesa regenerativa?</h1>
+  <p>Ustedes son Andina, la asociación de productores de Cabana y NordMarkt. En cuatro rondas negociarán un piloto de quinua regenerativa a cinco años y verán qué ocurre con su acuerdo cuando llegue lo inesperado.</p>
+  <div class="timeline">${['Año 1 · transición', 'Año 2 · transición', 'Año 3 · primeras entregas', 'Año 4', 'Año 5'].map(x => `<div>${x}</div>`).join('')}</div></section>
+  <div class="card story"><div class="storygrid"><div>
+    <h2>La historia en 90 segundos</h2>
+    <p><b>Andina Foods</b> exporta quinua desde Puno. Hoy compra quinua convencional a la <b>asociación de productores de Cabana</b>: 25 familias, 2 ha cada una, 90 t al año.</p>
+    <p><b>NordMarkt</b>, una cadena de supermercados europea, quiere quinua <b>regenerativa certificada</b> desde el año 3 de un contrato a cinco años: al menos 70 t al año, y paga más por ella.</p>
+    <p>El problema: cambiar de prácticas cuesta. En los años 1 y 2 baja el rendimiento, sube el costo, hay que invertir y certificar, y las familias no tienen ahorros para hacerlo solas. El directorio de Andina solo aprueba el piloto si gana al menos lo mismo que comprando convencional.</p>
+    <p><b>La pregunta:</b> ¿quién financia la transición y cómo se reparte lo que se gana después?</p>
+  </div><div>
+    <h3>Cifras clave</h3>
+    <table class="tbl mini">
+      <tr><th></th><th>Convencional</th><th>Regenerativo</th></tr>
+      <tr><td>Rendimiento (t/ha)</td><td class="n">1,80</td><td class="n">1,62 · 1,70 · 1,80</td></tr>
+      <tr><td>Costo (S/ por ha)</td><td class="n">7.200</td><td class="n">8.000 · 7.800 · 7.500</td></tr>
+      <tr><td>Precio al productor hoy</td><td class="n">S/6.000/t</td><td class="n">a negociar</td></tr>
+    </table>
+    <div class="kv"><span>Ganancia de una familia en convencional</span><span>S/7.200 al año</span>
+      <span>Inversión de transición por familia</span><span>S/3.000 (S/1.500/ha)</span>
+      <span>Ahorro de cada familia</span><span>S/2.000</span>
+      <span>Instalación del programa (Andina)</span><span>S/90.000</span>
+      <span>Margen convencional de Andina</span><span>S/1.200/t</span>
+      <span>Vara del directorio (5 años)</span><span>S/540.000</span>
+      <span>NordMarkt: referencia y techo</span><span>S/11.500 · S/11.800/t</span>
+      <span>NordMarkt: mínimo y opción</span><span>70 t + hasta 20 t</span></div>
+    <div class="small">Los tres números de rendimiento y costo regenerativo son los años 1, 2 y 3 a 5.</div>
+  </div></div></div>
+  <div class="grid"><div>
+    <div class="card"><h2>Identifiquen su mesa</h2><p class="sub">El nombre aparecerá en el registro del facilitador.</p>
+      <div class="field"><label>Mesa</label><input type="text" id="mesa" value="${esc(ST.mesa)}" placeholder="Ej.: Mesa 3"></div>
+      <div class="row">${['andina', 'asoc', 'nm'].map(x => `<div class="field" style="flex:1;min-width:150px"><label>${roleTag(x)}</label><input type="text" data-rep="${x}" value="${esc(ST.reps[x])}" placeholder="Nombre(s)"></div>`).join('')}</div>
+      <div class="row" style="margin-top:8px"><button class="btn gold" id="empezar" type="button" ${ST.mesa.trim() ? '' : 'disabled'}>Comenzar la ronda 1</button></div>
+    </div></div>
+    <div><div class="card"><h2>Cómo funciona</h2>
+      <div class="howto">
+        <div><b>Ronda 1<small>${CFG.minR1} min</small></b><span>Andina y la asociación negocian solos. NordMarkt observa: su precio (S/11.500) y su mínimo (70 t) aún no se discuten.</span></div>
+        <div><b>Ronda 2<small>${CFG.minR2} min</small></b><span>NordMarkt se sienta a la mesa. Las tres partes firman un acuerdo a cinco años.</span></div>
+        <div><b>Ronda 3<small>${CFG.minR3} min</small></b><span>Algo cambia en el año 3. Andina y la asociación deciden cómo responder.</span></div>
+        <div><b>Ronda 4<small>${CFG.minR4} min</small></b><span>Presentan un plan a NordMarkt, que decide si mantiene la alianza.</span></div>
+        <div><b>Cierre<small>${CFG.minCierre} min</small></b><span>Completan la matriz de valor y la pregunta regenerativa.</span></div>
+      </div>
+      <div class="note">Cada rol tiene una hoja confidencial impresa. La pantalla calcula consecuencias solo cuando todos los roles de la ronda ratifican la propuesta. Cada intento queda registrado.</div>
+    </div></div></div>`;
+}
+
+/* ---------- formulario del acuerdo A (rondas 1 y 2) ---------- */
+function formAcuerdo(r) {
+  const lockNM = r === 1, a = ST.acuerdo, esRoc = a.esquema === 'roc';
+  return `
+  <div class="card"><div class="row" style="justify-content:space-between"><h2>Hoja de acuerdo</h2>${roleTag('andina')} ${roleTag('asoc')}</div>
+    <p class="sub">Precios que Andina paga a los productores y reparto de inversiones. Las toneladas de los años 1 y 2 se venden en el canal convencional de Andina (S/8.700/t).</p>
+    <div class="small" style="margin-bottom:6px">${a.familias} familias · ${a.familias * CFG.haFam} ha</div>
+    ${slider('acuerdo.p1', 'Precio al productor · año 1 (transición)', 6000, 8000, 100, FMT.solesT)}
+    ${ayuda('p1', 'Lo paga Andina por cada tonelada del año 1. Ese año el rendimiento cae de 1,80 a 1,62 t/ha y el costo sube de S/7.200 a S/8.000/ha. Con el precio convencional de S/6.000, la familia gana menos que si no hubiera cambiado. Sube el ingreso de las familias y baja el resultado de Andina.')}
+    ${slider('acuerdo.p2', 'Precio al productor · año 2 (transición)', 6000, 8000, 100, FMT.solesT)}
+    ${ayuda('p2', 'Año 2: 1,70 t/ha y S/7.800/ha. Si este precio es menor que el del año 1, la asociación puede leerlo como una promesa incumplida, aunque el ingreso suba porque mejora el rendimiento.')}
+    ${slider('acuerdo.p35', 'Precio al productor · años 3 a 5 (quinua certificada)', 6000, 9000, 100, FMT.solesT)}
+    ${ayuda('p35', 'Desde el año 3 la quinua se certifica y Andina la vende a NordMarkt. Rendimiento 1,80 t/ha y costo S/7.500/ha. Es el precio que más pesa: cada S/100 mueve unos S/27.000 en tres años entre Andina y las familias.')}
+  </div>
+  <div class="card"><h3>Inversión y certificación</h3>
+    ${slider('acuerdo.invAndinaPct', 'Parte de la inversión de transición (S/1.500/ha) que adelanta Andina', 0, 100, 10, FMT.pct, 'Andina lo recupera en los años 3 a 5. El resto lo ponen las familias antes de la primera cosecha (ahorro disponible: S/2.000 por familia).')}
+    ${ayuda('inv', 'La transición cuesta S/1.500/ha: S/3.000 por familia antes de la primera cosecha. Las familias tienen unos S/2.000 ahorrados. Si Andina adelanta menos del 90%, a las familias no les alcanza la caja. Lo que adelanta Andina vuelve en tres cuotas en los años 3 a 5.')}
+    ${seg('acuerdo.esquema', 'Esquema de certificación', [['regenagri', 'regenagri'], ['regenified', 'Certified Regenified'], ['roc', 'ROC']], false,
+      'Comparen los tres esquemas en la tabla de abajo.')}
+    ${tablaEsquemas()}
+    ${slider('acuerdo.certAndinaPct', 'Parte de la certificación que paga Andina', 0, 100, 10, FMT.pct)}
+    ${ayuda('cert', 'Instalación del primer año más una auditoría cada año, para las 25 familias juntas. La parte que no paga Andina se descuenta de las ventas de las familias, también en los años de transición.')}
+  </div>
+  <div class="card"><h3>Reglas de la alianza</h3><p class="sub">Cada paquete tiene un costo desde el año 1, repartido ${a.gobAndinaPct === 50 ? 'en partes iguales' : `${a.gobAndinaPct}% Andina y ${100 - a.gobAndinaPct}% familias`}. Su beneficio no siempre se ve en el escenario de planificación.</p>
+    <div class="pkgs">${Object.entries(PAQUETES).map(([k, p]) => { const c = costoPaquete5(p.cl, a.familias);
+      return `<button type="button" data-pkg="${k}" class="pkg ${a.paquete === k ? 'on' : ''}"><b>${p.nombre}</b><span>${p.desc}</span><em>${c ? S(c) + ' en 5 años' : 'Sin costo'}${p.fondo ? ' + aportes al fondo' : ''}</em></button>`; }).join('')}</div>
+    ${a.paquete === 'personalizado' ? '<div class="note">Reglas personalizadas en opciones avanzadas.</div>' : ''}
+    ${ayuda('reglas', 'En el escenario de planificación todo sale bien, así que aquí las reglas solo muestran su costo. Sirven si algo sale mal: el monitoreo y la capacitación reducen los lotes rechazados por el certificador; las sanciones frenan la venta fuera del acuerdo; el comité da voz a las familias; el fondo guarda dinero para imprevistos; la cláusula climática permite renegociar sin acusar incumplimiento.')}
+  </div>
+
+  <div class="card"><div class="row" style="justify-content:space-between"><h3>Condiciones de NordMarkt</h3>${roleTag('nm')}</div>
+    ${lockNM ? `<div class="lock">En esta ronda NordMarkt no negocia. Se usan sus referencias públicas: S/11.500/t, mínimo de 70 t desde el año 3, sin volumen adicional y con el esquema autorizado.</div>` : `
+    ${slider('acuerdo.nmPrecio', 'Precio de NordMarkt por t certificada (FOB Callao)', 11000, 12200, 100, FMT.solesT, 'Sobre S/11.800 requiere aprobación comercial extraordinaria.')}
+    ${ayuda('nmPrecio', 'Lo que NordMarkt le paga a Andina por la quinua certificada. Su referencia es S/11.500. Es lo único que agranda el pastel para Andina y las familias: cada S/100 suma unos S/27.000 en tres años. Para NordMarkt, cada S/100 es costo.')}
+    ${slider('acuerdo.nmExtra', 'Opción de NordMarkt sobre toneladas adicionales (años 3 a 5)', 0, CFG.nmOpcionMax, 5, FMT.ton, 'Compromiso de comprar hasta 70 t + esta cantidad si la calidad se confirma.')}
+    ${ayuda('nmExtra', 'Con 25 familias se cosechan 90 t desde el año 3. NordMarkt compra como mínimo 70 t; lo que no compre, Andina lo vende como convencional, con menos margen. La opción de 20 t deja que toda la cosecha se venda certificada.')}
+    ${seg('acuerdo.nmAutoriza', 'NordMarkt autoriza el esquema elegido', [[true, 'Autoriza'], [false, 'No autoriza']])}
+    ${esRoc ? seg('acuerdo.nmAceptaRetraso', 'Con ROC, ¿acepta que las entregas certificadas empiecen en el año 4?', [[true, 'Acepta'], [false, 'No acepta']]) : ''}`}
+  </div>
+  <div class="card adv"><button type="button" class="advtoggle" data-toggle="advA">${ST.ui.advA ? '▾' : '▸'} Opciones avanzadas <span class="small">(opcional: número de familias, reglas una por una, modo de la inversión, precio del excedente)</span></button>
+    ${ST.ui.advA ? `<div style="margin-top:10px">
+    ${slider('acuerdo.familias', 'Familias incluidas en el piloto', 18, 25, 1, FMT.fam, 'Si incluyen menos de 25, se integran primero las familias con más experiencia. Las demás siguen vendiendo en convencional a Andina.')}
+    ${seg('acuerdo.invModo', 'Lo que pone Andina es…', [['anticipo', 'Anticipo recuperable (se descuenta en años 3 a 5)'], ['donacion', 'Aporte no reembolsable']])}
+    ${slider('acuerdo.pExc', 'Precio por toneladas certificadas que NordMarkt no compre', 6000, 9000, 100, FMT.solesT, 'Por defecto es igual al precio certificado. Solo importa si la cosecha supera lo que compra NordMarkt; Andina vende ese excedente en su canal convencional a S/8.700/t.')}
+    <h3 style="margin-top:12px">Reglas una por una</h3>
+    ${chk('acuerdo.clausulas.comite', 'Comité conjunto de seguimiento', `Andina y la asociación revisan juntos el avance cada campaña. Costo: ${S(CFG.gobComite)} al año.`)}
+    ${chk('acuerdo.clausulas.monitoreo', 'Monitoreo conjunto y registros por lote', `Visitas de campo y trazabilidad compartida antes de cada entrega. Costo: ${S(CFG.gobMonitoreo)}/ha al año (${S(CFG.gobMonitoreo * a.familias * CFG.haFam)} al año).`)}
+    ${chk('acuerdo.clausulas.capacitacion', 'Capacitación y revisión previa a la entrega', `Formación técnica de las familias en los años 1 y 2. Costo: ${S(CFG.gobCap1)}/ha en el año 1 y ${S(CFG.gobCap2)}/ha en el año 2.`)}
+    ${chk('acuerdo.clausulas.fuerzaMayor', 'Cláusula de revisión ante eventos climáticos extraordinarios', 'Define cómo se renegocian precio y volumen si ocurre un evento documentado. Sin costo directo.')}
+    ${chk('acuerdo.clausulas.sanciones', 'Sanciones graduales por vender fuera del acuerdo', 'Advertencia, pérdida de la prima y, en último caso, exclusión. Sin costo directo.')}
+    ${chk('acuerdo.clausulas.fondo', 'Fondo de contingencia compartido', 'Andina y la asociación aportan lo mismo por cada tonelada de los años 1 y 2. Si no se usa, el saldo se devuelve en el año 5.')}
+    ${a.clausulas.fondo ? slider('acuerdo.fondo', 'Aporte al fondo (cada parte, por tonelada en años 1 y 2)', 0, 300, 25, FMT.fondo) : ''}
+    ${slider('acuerdo.gobAndinaPct', 'Parte del costo de las reglas que paga Andina', 0, 100, 10, FMT.pct, 'El resto lo pagan las familias, descontado de sus ventas.')}
+    </div>` : ''}
+  </div>`;
+}
+function resultadosA(res, r) {
+  if (!res) return `<div class="card"><div class="empty"><b>Aún no hay resultados</b>Cuando ${r === 1 ? 'Andina y la asociación' : 'las tres partes'} ratifiquen la propuesta, calculen sus consecuencias a cinco años.</div></div>`;
+  const c = res.cond, a = res.acuerdo || ST.acuerdo;
+  const yr = ['Año 1', 'Año 2', 'Año 3', 'Año 4', 'Año 5'];
+  const st = (ok, okT, badT) => `<span class="st ${ok ? 'ok' : 'bad'}">${ok ? okT : badT}</span>`;
+  const y3 = res.years[2];
+  return `<div class="card"><h2>Consecuencias a cinco años</h2><p class="sub">Escenario de planificación del caso: rendimientos sin eventos extraordinarios y toda la cosecha conforme.</p>
+  <div class="actors">
+    <div class="actor andina"><div class="name">Andina</div><div class="big">${Ssigned(res.andinaVsVara)}</div><div class="small">frente a la vara del directorio</div>
+      ${st(c.andina, 'Supera la vara', 'No alcanza la vara')}
+      <div class="kv"><span>Resultado del piloto</span><span>${S(res.andina5)}</span><span>Vara (convencional)</span><span>${S(res.bench5)}</span>${res.anio6 ? `<span>Cada año desde el año 6, si se renueva</span><span>${Ssigned(res.anio6.andina)}</span>` : ''}</div></div>
+    <div class="actor asoc"><div class="name">Familias</div><div class="big">${Ssigned(res.prodFam5)}</div><div class="small">por familia en 5 años, frente a seguir en convencional</div>
+      ${st(c.productoresValor, 'Les conviene', 'Pierden frente a hoy')} ${c.liquidez ? '' : '<span class="st warn">Brecha de caja en el año 1</span>'}
+      <div class="kv"><span>Año 1 por familia</span><span>${Ssigned(res.prodFamAnual[0])}</span><span>Caja extra antes de cosechar</span><span>${S(res.liqNecesidad)}</span><span>Ahorro disponible</span><span>${S(CFG.ahorro)}</span>${res.anio6 ? `<span>Cada año desde el año 6, si se renueva</span><span>${Ssigned(res.anio6.familia)} por familia</span>` : ''}</div></div>
+    <div class="actor nm"><div class="name">NordMarkt</div><div class="big">${t1(y3.toNM)} t</div><div class="small">certificadas en el año 3 (mínimo 70 t)</div>
+      ${st(c.nordmarkt, 'Condiciones cumplidas', 'Condiciones no cumplidas')}
+      <div class="kv"><span>Precio pactado</span><span>${S(a.nmPrecio)}/t</span><span>Primer año certificado</span><span>${res.anioCert > 5 ? 'Ninguno' : 'Año ' + res.anioCert}</span><span>Volumen sobrante año 3</span><span>${t1(y3.exc)} t</span></div></div>
+  </div>
+  ${!c.precio ? '<div class="note warn">El precio supera el techo de S/11.800: NordMarkt necesitaría una aprobación comercial extraordinaria.</div>' : ''}
+  ${res.anioCert > 3 && res.anioCert <= 5 ? '<div class="note warn">Con ROC no hay quinua certificada en el año 3: NordMarkt no recibe su mínimo ese año.</div>' : ''}
+  ${!res.autoriza || res.anioCert > 5 ? '<div class="note bad">Sin esquema autorizado o sin aceptación del retraso no hay ventas certificadas: todo se vende como convencional.</div>' : ''}
+  ${res.gob5 || res.fondoPorParte ? `<div class="note">${res.gob5 ? `Reglas de la alianza: ${S(res.gob5)} en cinco años (Andina ${S(res.gob5A)} · familias ${S(res.gob5P)}). ` : ''}${res.fondoPorParte ? `Fondo: cada parte aporta ${S(res.fondoPorParte)} en los años 1 y 2; sin uso, se devuelve en el año 5.` : ''}</div>` : ''}
+  ${res.anio6 ? `<div class="note">La vara del directorio mide cinco años y el costo de la transición está al principio. Si la alianza se renueva en las mismas condiciones, desde el año 6 Andina gana ${Ssigned(res.anio6.andina)} al año frente a convencional y cada familia ${Ssigned(res.anio6.familia)}.</div>` : ''}
+  ${impactoCard(res.impacto, false)}
+  <h3 style="margin-top:16px">Año por año</h3>
+  ${barChart(yr, [{ name: 'Andina (piloto)', color: '#1f5a44', data: res.years.map(v => v.andina) }, { name: 'Vara de Andina', color: '#1f5a44', dash: true, data: res.years.map(v => v.benchA) },
+    { name: 'Familias: diferencia frente a convencional (total)', color: '#b5533c', data: res.years.map(v => v.prodDelta) }], { label: 'Resultados por año' })}
+  </div>`;
+}
+/* Suelo, agua y comunidad: indicadores no financieros */
+function impactoCard(im, final) {
+  if (!im) return '';
+  const tot = im.familias * CFG.haFam;
+  const items = [
+    ['Hectáreas bajo prácticas regenerativas en el año 5', `${im.haRegen5} de ${tot} ha`],
+    ['Familias en el programa en el año 5', `${final ? im.familiasSiguen : im.familias} de ${im.familias}`],
+    ['Hectárea-años de manejo continuo (salud del suelo)', `${im.haAnios} de ${5 * tot}`],
+    ['Insumos de síntesis evitados en cinco años', S(im.insumosEvitados)]
+  ];
+  if (final && im.perdidaAlianza != null) items.push(['Pérdida por la sequía: familias que siguen / convencional', `${Math.round(im.perdidaAlianza * 100)}% / ${Math.round(im.perdidaConv * 100)}%`]);
+  if (final && im.laderas) items.push(['Familias de laderas expuestas', im.laderas.siguen ? `Siguen las ${im.laderas.fam}` : `Salieron las ${im.laderas.fam}`]);
+  return `<div class="impacto"><div class="name">Suelo, agua y comunidad</div>
+    <div class="kv">${items.map(([k, v]) => `<span>${k}</span><span>${v}</span>`).join('')}</div>
+    ${final ? '' : '<div class="small">Escenario de planificación. La salud del suelo y la retención de agua son objetivos sujetos a medición, no beneficios asegurados.</div>'}</div>`;
+}
+function vRonda(r) {
+  const roles = r === 1 ? ['andina', 'asoc'] : ['andina', 'asoc', 'nm'];
+  const res = ST.calc['r' + r];
+  const head = r === 1
+    ? `<section class="hero"><div class="eyebrow">Ronda 1 · Caso A</div><h1>Andina y la asociación, frente a frente</h1><p>Doce días antes de la reunión con NordMarkt, Andina y la asociación de Cabana intentan cerrar un acuerdo entre ellos. NordMarkt observa en silencio.</p></section>`
+    : `<section class="hero"><div class="eyebrow">Ronda 2 · Caso A</div><h1>NordMarkt se sienta a la mesa</h1><p>Ahora las tres partes negocian. NordMarkt puede mover su precio, su volumen y su aceptación del esquema; Andina y la asociación pueden revisar lo que acordaron.</p></section>`;
+  const ok = allRatified('r' + r, roles);
+  return head + reloj(r) + brief(r) + `<div class="grid"><div>${formAcuerdo(r)}</div><div>
+   <div class="card"><h2>Ratificación</h2><p class="sub">Cada representante confirma que acepta discutir esta propuesta. Cualquier cambio en la hoja borra las ratificaciones.</p>
+    ${ratifyBar('r' + r, roles)}
+    <div class="row"><button class="btn" type="button" id="calcular" ${ok ? '' : 'disabled'}>Calcular consecuencias</button><span class="small">Intentos registrados: <b>${ST.intentos['r' + r]}</b></span></div>
+   </div>
+   ${r === 2 ? pistaCard(2) : ''}
+   ${resultadosA(res, r)}
+   ${r === 2 ? `<div class="card"><h2>Firmar o retirarse</h2><p class="sub">El acuerdo firmado será la base de las rondas siguientes. Retirarse también es una decisión válida: cualquier parte puede no firmar.</p>
+     <div class="row"><button class="btn gold" type="button" id="firmar" ${res && ok && !ST.retiro ? '' : 'disabled'}>Firmar acuerdo de cinco años</button></div>
+     ${ST.retiro && !ST.firmado ? `<div class="note" style="margin-top:8px">Esta mesa registró antes que ${esc(ROLES[ST.retiro.quien] || ST.retiro.quien)} se retiraba, por eso no se puede firmar. Si las partes vuelven a negociar, retomen la negociación.</div><div class="row"><button class="btn ghost" type="button" id="retomar">Retomar la negociación</button></div>` : ''}
+     ${!ST.retiro && !(res && ok) ? `<div class="small" style="margin-top:6px">${!res ? 'Para firmar, primero calculen las consecuencias de esta propuesta.' : `Para firmar, las tres partes deben ratificar esta propuesta. Falta: ${['andina', 'asoc', 'nm'].filter(x => !ST.ratif.r2[x]).map(x => ROLES[x]).join(', ')}.`}</div>` : ''}
+     ${ST.firmado ? `<div class="note">Acuerdo firmado${ST.sinAcuerdoA ? ' (términos de referencia del facilitador)' : ''}. Pueden continuar.</div>` : ''}
+     ${!ST.firmado ? `<div class="field" style="margin-top:16px"><label>¿Alguna parte decide no firmar?</label><div class="seg">${['andina', 'asoc', 'nm'].map(x => `<button type="button" data-retira="${x}" class="${ST.retiroUI.quien === x ? 'on' : ''}">${ROLES[x]} se retira</button>`).join('')}</div></div>
+     ${ST.retiroUI.quien ? `<div class="field"><label>¿Por qué? (una o dos líneas)</label><textarea data-text="retiroUI.motivo">${esc(ST.retiroUI.motivo)}</textarea></div>
+     <div class="row"><button class="btn ghost" type="button" id="confirmarRetiro">Confirmar: no hay acuerdo</button><button class="btn ghost" type="button" id="cancelarRetiro">Seguir negociando</button></div>` : ''}` : ''}</div>` :
+     `<div class="card"><h2>¿Y ahora?</h2><p class="sub">Registren su mejor propuesta bilateral, aunque no cumpla todas las condiciones. Luego entra NordMarkt.</p><button class="btn gold" type="button" id="aR2" ${res ? '' : 'disabled'}>Pasar a la ronda 2</button></div>`}
+  </div></div>`;
+}
+const vR1 = () => vRonda(1), vR2 = () => vRonda(2);
+
+/* ---------- Ronda 3 ---------- */
+function vR3() {
+  const a = acuerdoVigente(), res = ST.calc.r3;
+  const reveal = !ST.revelado ? `<div class="reveal" id="reveal"><div style="max-width:820px">
+     <div class="eyebrow" style="color:#ffe1a8;letter-spacing:.2em;font-weight:700;font-size:12px">AÑO 3 · UN MES ANTES DE LA COSECHA</div>
+     <h1>Sequía excepcional en el altiplano</h1>
+     <p style="font-size:17px;color:#ffeccc">La lluvia faltó en las etapas más sensibles del cultivo. El equipo técnico estima una caída promedio de 25% del rendimiento, con efectos muy desiguales entre familias.</p>
+     <div class="facts"><div class="fact"><b>−25%</b>rendimiento promedio</div><div class="fact"><b>67,5 t</b>cosecha prevista (25 familias)</div><div class="fact"><b>S/900/ha</b>medidas de contingencia</div><div class="fact"><b>70 t</b>mínimo firme de NordMarkt</div></div>
+     <button class="btn gold" type="button" id="verImpacto">Ver el impacto en nuestro acuerdo</button></div></div>` : '';
+  const g = asignarGrupos(CFG, a.familias).filter(x => x.fam > 0);
+  return reveal + `<section class="hero drought"><div class="eyebrow">Ronda 3 · Caso B</div><h1>El contrato bajo presión</h1>
+  <p>Ocho familias perderían cerca de 10%, doce alrededor de 25% y cinco casi la mitad. Sin medidas de contingencia, el promedio cae a 1,20 t/ha. En Juliaca, los acopiadores pagan ${S(CFG.spot)}/t al contado.</p></section>${ST.revelado ? reloj(3) + brief(3) : ''}
+  <div class="grid"><div>
+  <div class="card"><div class="row" style="justify-content:space-between"><h2>Respuesta a la sequía</h2>${roleTag('andina')} ${roleTag('asoc')}</div>
+    <p class="sub">Su acuerdo firmado: ${a.familias} familias · ${S(a.p35)}/t certificada · ${esc(CFG.certs[a.esquema].nombre)} · NordMarkt ${S(a.nmPrecio)}/t${a.nmExtra ? ` + opción de ${a.nmExtra} t` : ''}. Reglas: ${(Object.keys(a.clausulas).filter(k => a.clausulas[k]).map(k => ({ comite: 'comité', monitoreo: 'monitoreo', capacitacion: 'capacitación', fuerzaMayor: 'revisión climática', sanciones: 'sanciones', fondo: 'fondo' }[k])).join(', ')) || 'ninguna'}.</p>
+    <h3>1 · Medidas de contingencia y quién las paga</h3>
+    ${seg('b.medidas', 'Medidas de conservación de humedad (S/900/ha)', [[true, 'Ejecutarlas'], [false, 'No ejecutarlas']])}
+    ${ayuda('medidas', 'Las medidas cuestan S/900/ha: S/45.000 para 50 ha. Sin ellas, el rendimiento promedio cae de 1,35 a 1,20 t/ha y la cosecha baja de 67,5 a 60 t.')}
+    ${ST.b.medidas ? slider('b.contAndinaPct', 'Parte del gasto que paga Andina', 0, 100, 10, FMT.pct, 'El resto lo pagan las familias en el año 3.') : ''}
+    ${ST.b.medidas ? ayuda('cont', 'Si las familias pagan mucho, las más golpeadas no resisten la caja del año 3 y dejan el programa. Si paga Andina, se aleja más de la vara de su directorio.') : ''}
+    ${ST.b.medidas && a.clausulas.fondo ? chk('b.usarFondo', 'Usar primero el fondo de contingencia', 'Disponible: ' + S(2 * (a.fondo || 0) * (CFG.y1 + CFG.y2) * a.familias * CFG.haFam)) : ''}
+    <h3 style="margin-top:14px">2 · Las familias de laderas</h3>
+    ${slider('b.apoyoG3', 'Apoyo de Andina a cada familia de laderas', 0, 4000, 250, FMT.solesFam, 'Solo se paga si esas familias siguen en el programa.')}
+    ${ayuda('laderas', 'Las 5 familias de laderas producirán 0,92 t/ha, casi la mitad de lo esperado. Si su resultado del año 3 cae por debajo de −S/1.500 por familia, dejan el programa y su cosecha no llega a NordMarkt. Pueden recibir hasta S/1.000/ha del seguro catastrófico, después de la cosecha.')}
+    <h3 style="margin-top:14px">3 · La venta a los acopiadores</h3>
+    ${seg('b.regla', 'Regla para el año 3', [['ninguna', 'Sin regla nueva'], ['sancion', 'Sanción por vender fuera'], ['sancion_bono', 'Sanción + bono por entrega completa']])}
+    ${ST.b.regla === 'sancion_bono' ? slider('b.bono', 'Bono por tonelada entregada (lo paga Andina)', 0, 600, 50, FMT.solesT) : ''}
+    ${ayuda('regla', `En Juliaca los acopiadores pagan ${S(CFG.spot)}/t al contado y sin registros. Sin ninguna regla, cerca de una de cada cuatro toneladas se vendería fuera. Las sanciones reducen esa venta y un bono la reduce más. Si el precio pactado más el bono llega a ${S(CFG.spot)}, nadie tiene motivo para vender fuera.`)}
+  </div>
+  <div class="card adv"><button type="button" class="advtoggle" data-toggle="advB">${ST.ui.advB ? '▾' : '▸'} Opciones avanzadas <span class="small">(opcional: anticipo y precio del año 3)</span></button>
+    ${ST.ui.advB ? `<div style="margin-top:10px">
+    ${seg('b.diferirAnticipo', 'Recuperación del anticipo en el año 3', [[false, 'Se cobra como estaba pactado'], [true, 'Se difiere a los años 4 y 5']], a.invModo !== 'anticipo' || !a.invAndinaPct)}
+    ${slider('b.ajusteP3', 'Ajuste de precio al productor en el año 3', 0, 1000, 100, FMT.solesT)}</div>` : ''}
+  </div></div><div>
+  <div class="card"><h2>Ratificación</h2>${ratifyBar('r3', ['andina', 'asoc'])}
+    <div class="row"><button class="btn" type="button" id="calcular" ${allRatified('r3', ['andina', 'asoc']) ? '' : 'disabled'}>Calcular consecuencias</button><span class="small">Intentos registrados: <b>${ST.intentos.r3}</b></span></div></div>
+  ${ST.revelado ? pistaCard(3) : ''}
+  ${res ? resultadosB(res) : `<div class="card"><div class="empty"><b>¿Quiénes se quedan y cuánto llega a NordMarkt?</b>Las familias deciden si siguen según su caja en el año 3 y lo que esperan de los años 4 y 5. ${g.length} grupos en su acuerdo.</div></div>`}
+  ${res ? `<div class="card"><button class="btn gold" type="button" id="aR4">Preparar la propuesta a NordMarkt</button></div>` : ''}
+  </div></div>`;
+}
+function resultadosB(B) {
+  const maxT = Math.max(B.cosecha, CFG.nmMin + 5);
+  const w = v => Math.max(4, v / maxT * 100) + '%';
+  return `<div class="card"><h2>Lo que la sequía hace con su acuerdo</h2>
+  <div class="groups">${B.grupos.map(g => `<div class="group ${g.sale ? 'out' : ''}"><div class="h">${esc(g.nombre)}</div><div class="n">${g.fam} familias</div>
+    <div class="small">${t2(g.y)} t/ha</div>
+    <div class="kv"><span>Año 3 por familia</span><span>${Ssigned(g.margenY3)}</span></div>
+    <span class="st ${g.sale ? 'bad' : 'ok'}">${g.sale ? (g.motivo === 'liquidez' ? 'Salen: no resisten la caja del año 3' : 'Salen: les conviene vender fuera') : 'Se quedan'}</span></div>`).join('')}</div>
+  <h3 style="margin-top:16px">Del campo a NordMarkt</h3>
+  <div class="funnel">
+    <div class="bar" style="width:${w(B.cosecha)};background:#7c6a46">Cosecha de quienes siguen · ${t1(B.cosecha)} t</div>
+    <div class="bar" style="width:${w(B.cosecha - B.paralela)};background:#a07a3a">Entregada a Andina · ${t1(B.cosecha - B.paralela)} t ${B.paralela ? `(${t1(B.paralela)} t vendidas a acopiadores)` : ''}</div>
+    <div class="bar" style="width:${w(B.conforme)};background:${B.deficit > 0 ? '#a7432f' : '#2f7a4f'}">Conforme · ${t1(B.conforme)} t (${Math.round(B.acept * 100)}% de aceptación)</div>
+    <div class="bar" style="width:${w(CFG.nmMin)};background:transparent;border:2px dashed #3f6f8f;color:#3f6f8f">Mínimo firme de NordMarkt · ${CFG.nmMin} t</div>
+  </div>
+  ${B.deficit > 0 ? `<div class="note bad">Déficit de <b>${t1(B.deficit)} t</b> (${Math.round(B.deficit / CFG.nmMin * 100)}% del mínimo). Sin una excepción aprobada, NordMarkt puede terminar la alianza antes del año 4.</div>` : '<div class="note">Cumplen el mínimo firme de NordMarkt pese a la sequía.</div>'}
+  <div class="kv"><span>Gasto de contingencia</span><span>${S(B.contTotal)}</span><span>· pagado con el fondo</span><span>${S(B.deFondo)}</span><span>· pagado por Andina</span><span>${S(B.contAndina)}</span><span>· pagado por las familias</span><span>${S(B.contProd)}</span><span>Precio al productor año 3</span><span>${S(B.p3)}/t</span></div>
+  </div>`;
+}
+
+/* ---------- Ronda 4 ---------- */
+function vR4() {
+  const F = ST.calc.r4, B = ST.calc.r3; const a = acuerdoVigente();
+  return `<section class="hero"><div class="eyebrow">Ronda 4 · Caso B</div><h1>La propuesta a NordMarkt</h1><p>NordMarkt no aceptará producto no certificado ni modificará precios por la sequía. Escuchará una propuesta excepcional, fundada en evidencia y con compromisos verificables.</p></section>${reloj(4)}${brief(4)}
+  <div class="grid"><div>
+  <div class="card"><div class="row" style="justify-content:space-between"><h2>Propuesta</h2>${roleTag('andina')} ${roleTag('asoc')}</div>
+    <p class="sub">Volumen conforme estimado: <b>${t1(B.conforme)} t</b> de ${CFG.nmMin} t · déficit ${t1(B.deficit)} t.</p>
+    <div class="field"><label>Compromisos verificables que presentan</label>${COMPROMISOS.map(([k, t]) => `<label class="chk"><input type="checkbox" data-comp="${k}" ${ST.r4.compromisos.includes(k) ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
+    ${seg('r4.solicitud', 'Lo que solicitan', [['reprogramar', 'Reprogramar el déficit a los años 4 y 5'], ['minimo', 'Mínimo temporal reducido en el año 3'], ['ninguna', 'Ninguna excepción']])}
+    <div class="field"><label>Argumento principal (máx. 3 líneas)</label><textarea data-text="r4.texto">${esc(ST.r4.texto)}</textarea></div>
+  </div></div><div>
+  <div class="card"><div class="row" style="justify-content:space-between"><h2>Decisión de NordMarkt</h2>${roleTag('nm')}</div>
+    <p class="sub">La representante de NordMarkt decide con el criterio de su hoja confidencial.</p>
+    ${B.deficit > 0 ? seg('r4.concede', '¿Aprueba la excepción?', [[true, 'Aprueba'], [false, 'No aprueba']]) : '<div class="note">No hay déficit: la alianza continúa sin excepción.</div>'}
+    ${a.nmExtra ? seg('r4.mantieneOpcion', `¿Mantiene su opción de ${a.nmExtra} t adicionales para los años 4 y 5?`, [[true, 'La mantiene'], [false, 'La retira']]) : ''}
+    ${ratifyBar('r4', ['nm'])}
+    <button class="btn" type="button" id="calcular" ${allRatified('r4', ['nm']) && (B.deficit <= 0 || ST.r4.concede !== null) ? '' : 'disabled'}>Ver el resultado a cinco años</button>
+  </div>
+  ${F ? resultadosFinal(F) : ''}
+  ${F ? '<div class="card"><button class="btn gold" type="button" id="aCierre">Ir al cierre</button></div>' : ''}
+  </div></div>`;
+}
+function resultadosFinal(F) {
+  const yr = ['Año 1', 'Año 2', 'Año 3', 'Año 4', 'Año 5'], a = acuerdoVigente();
+  return `<div class="card"><h2>Cinco años después</h2><p class="sub">${F.continua ? 'La alianza continúa en los años 4 y 5.' : 'NordMarkt termina la alianza: en los años 4 y 5 todo vuelve al canal convencional.'}</p>
+  <div class="actors">
+    <div class="actor andina"><div class="name">Andina</div><div class="big">${Ssigned(F.andinaVsVara)}</div><div class="small">frente a la vara del directorio</div>
+      <span class="st ${F.andinaVsVara >= 0 ? 'ok' : 'bad'}">${F.andinaVsVara >= 0 ? 'Supera la vara' : 'Bajo la vara'}</span>
+      <div class="kv"><span>Años 3 a 5: continuar</span><span>${S(F.andinaAdelante)}</span><span>Años 3 a 5: haber abandonado</span><span>${S(F.andinaAbandono)}</span>${F.anio6 ? `<span>Cada año desde el año 6, si se renueva</span><span>${Ssigned(F.anio6.andina)}</span>` : ''}</div></div>
+    <div class="actor asoc"><div class="name">Familias</div><div class="big">${Ssigned(F.prodFamVsConv)}</div><div class="small">por familia en 5 años, frente a convencional con la misma sequía</div>
+      <span class="st ${F.prodFamVsConv >= 0 ? 'ok' : 'bad'}">${F.B.famQuedan} de ${a.familias} familias siguen</span>
+      ${F.anio6 ? `<div class="kv"><span>Cada año desde el año 6, si se renueva</span><span>${Ssigned(F.anio6.familia)} por familia</span></div>` : ''}</div>
+    <div class="actor nm"><div class="name">NordMarkt</div><div class="big">${t1(F.y3.toNM)} t</div><div class="small">recibidas en el año 3</div>
+      <span class="st ${F.continua ? 'ok' : 'bad'}">${F.continua ? 'Mantiene la alianza' : 'Termina la alianza'}</span></div>
+  </div>
+  ${impactoCard(F.impacto, true)}
+  ${barChart(yr, [{ name: 'Andina', color: '#1f5a44', data: F.andinaY }, { name: 'Vara de Andina', color: '#1f5a44', dash: true, data: F.benchY },
+    { name: 'Familias (total)', color: '#b5533c', data: F.prodY }, { name: 'Familias en convencional', color: '#b5533c', dash: true, data: F.prodConv }], { shock: 2, label: 'Resultados finales' })}
+  </div>`;
+}
+
+/* ---------- Cierre ---------- */
+function vCierreSinAcuerdo() {
+  const R = ST.retiro, P = ST.calc.r2;
+  const famHoy = (CFG.yConv * CFG.pConv - CFG.cConv) * CFG.haFam, haTot = ACUERDO_INICIAL.familias * CFG.haFam;
+  const varaAnual = CFG.yConv * haTot * (CFG.ventaConv - CFG.pConv - CFG.opConv);
+  return `<section class="hero"><div class="eyebrow">Cierre · Sin acuerdo</div><h1>${ROLES[R.quien]} decidió no firmar</h1><p>${R.motivo ? esc(R.motivo) : 'La mesa no registró el motivo.'}</p></section>
+  <div class="grid"><div>
+  <div class="card"><h2>Qué pasa cuando no hay acuerdo</h2><p class="sub">Cada actor vuelve a su alternativa. Nadie asume el riesgo de la transición, pero tampoco se crea el nuevo negocio.</p>
+  <table class="tbl"><tr><th>Actor</th><th>Sin acuerdo</th></tr>
+  <tr><td><b>Andina</b></td><td>Sigue comprando a Cabana en convencional: unos ${S(varaAnual)} al año, ${S(varaAnual * 5)} en cinco años. No pierde frente a hoy, pero no abre la línea diferenciada y la nueva gerencia queda en entredicho.</td></tr>
+  <tr><td><b>Familias</b></td><td>Siguen en convencional: unos ${S(famHoy)} por familia al año. No arriesgan su ingreso, pero tampoco acceden a un precio mejor ni a un comprador estable.</td></tr>
+  <tr><td><b>NordMarkt</b></td><td>No consigue quinua regenerativa de Cabana y debe buscar otro proveedor andino.</td></tr></table>
+  ${P ? `<div class="note warn"><b>La última propuesta que calcularon</b> dejaba a Andina en ${Ssigned(P.andinaVsVara)} frente a su vara y a cada familia en ${Ssigned(P.prodFam5)} en cinco años${P.cond.nordmarkt ? '' : ', sin cumplir las condiciones de NordMarkt'}.</div>` : ''}
+  </div></div><div>
+  <div class="card"><h2>Reflexión de la mesa</h2>
+  <div class="field"><label>¿Por qué no hubo acuerdo? ¿Qué condición no se pudo cumplir?</label><textarea data-text="cierre.crea">${esc(ST.cierre.crea)}</textarea></div>
+  <div class="field"><label>¿Qué tendría que haber cedido cada actor para que el acuerdo fuera posible?</label><textarea data-text="cierre.distribuye">${esc(ST.cierre.distribuye)}</textarea></div>
+  <div class="field"><label>¿Qué valor dejó de crearse y quién lo pierde?</label><textarea data-text="cierre.captura">${esc(ST.cierre.captura)}</textarea></div>
+  <div class="field"><label>¿Qué tendría que poder medirse o verificarse para que los demás confíen?</label><textarea data-text="cierre.aprendizaje">${esc(ST.cierre.aprendizaje)}</textarea></div>
+  <div class="row"><button class="btn gold" type="button" id="enviarCierre">Registrar el cierre</button></div>
+  <div class="note">Si el facilitador lo indica, la mesa puede vivir igualmente el Caso B con los términos de referencia (panel del facilitador, pestaña «Esta mesa»).</div>
+  </div></div></div>`;
+}
+function vCierre() {
+  if (ST.retiro && !ST.firmado) return vCierreSinAcuerdo();
+  const F = ST.calc.r4; if (!F) return '<div class="card">Completen la ronda 4.</div>';
+  const a = acuerdoVigente(), B = F.B;
+  const andinaInv = (a.invModo === 'donacion' ? CFG.inv * F.B.A.ha * a.invAndinaPct / 100 : 0);
+  const certTot = CFG.certs[a.esquema].inst + 5 * CFG.certs[a.esquema].anual;
+  return `<section class="hero"><div class="eyebrow">Cierre</div><h1>¿Quién creó, quién recibió y quién capturó el valor?</h1><p>Completen la matriz antes de la discusión plenaria. Sus respuestas quedan registradas con los resultados.</p></section>${reloj(5)}${brief(5)}
+  <div class="grid"><div>
+  <div class="card"><h2>Matriz de valor por actor</h2>
+  <div class="scroll"><table class="tbl"><tr><th></th><th>Andina</th><th>Familias</th><th>NordMarkt</th><th>Suelo, agua y comunidad</th></tr>
+  <tr><td><b>Qué aportó</b></td><td>Instalación ${S(CFG.setup)}${andinaInv ? `, inversión ${S(andinaInv)}` : ''}${a.invModo === 'anticipo' && a.invAndinaPct ? ', anticipo' : ''}; ${a.certAndinaPct}% de la certificación (${S(certTot * a.certAndinaPct / 100)})${F.B.A.gob5A ? `; ${S(F.B.A.gob5A)} en reglas` : ''}</td><td>${a.familias} familias, ${a.familias * CFG.haFam} ha; ${100 - a.invAndinaPct}% de la inversión; ${100 - a.certAndinaPct}% de la certificación${F.B.A.gob5P ? `; ${S(F.B.A.gob5P)} en reglas` : ''}</td><td>Precio ${S(a.nmPrecio)}/t; mínimo 70 t${a.nmExtra ? ` + opción ${a.nmExtra} t` : ''}</td><td>El suelo y el agua de ${a.familias * CFG.haFam} ha; el tejido de una comunidad de ${a.familias} familias</td></tr>
+  <tr><td><b>Qué riesgo asumió en la sequía</b></td><td>${S(B.contAndina)} de contingencia; apoyo ${S(F.y3.apoyo)}</td><td>${S(B.contProd)} de contingencia; ${B.grupos.filter(g => g.sale).reduce((s, g) => s + g.fam, 0)} familias salieron</td><td>Déficit de ${t1(B.deficit)} t; ${ST.r4.concede === false ? 'terminó la alianza' : 'mantuvo la alianza'}</td><td>${F.impacto.perdidaAlianza != null ? `Pérdida de ${Math.round(F.impacto.perdidaAlianza * 100)}% en las parcelas que siguen (convencional: ${Math.round(F.impacto.perdidaConv * 100)}%)` : 'Sin parcelas en el programa'}${F.impacto.laderas ? `; laderas: ${F.impacto.laderas.siguen ? 'siguen' : 'salieron'}` : ''}</td></tr>
+  <tr><td><b>Resultado frente a su alternativa</b></td><td class="n">${Ssigned(F.andinaVsVara)}</td><td class="n">${Ssigned(F.prodFamVsConv)} por familia</td><td>${t1(F.y3.toNM)} t certificadas en el año 3</td><td>${F.impacto.haRegen5} ha regenerativas en el año 5; ${F.impacto.haAnios} de ${5 * a.familias * CFG.haFam} hectárea-años de manejo continuo; ${S(F.impacto.insumosEvitados)} en insumos de síntesis evitados</td></tr></table></div>
+  <div class="field"><label>¿Qué valor creó la alianza que nadie habría creado solo?</label><textarea data-text="cierre.crea">${esc(ST.cierre.crea)}</textarea></div>
+  <div class="field"><label>¿Cómo se distribuyó y quién lo capturó? ¿Fue proporcional al riesgo?</label><textarea data-text="cierre.distribuye">${esc(ST.cierre.distribuye)}</textarea></div>
+  <div class="field"><label>¿Qué regla del acuerdo funcionó o faltó cuando llegó la sequía?</label><textarea data-text="cierre.captura">${esc(ST.cierre.captura)}</textarea></div>
+  <div class="field"><label>¿Su alianza es regenerativa o es un negocio centrado en Andina con etiqueta regenerativa? ¿Por qué?</label><textarea data-text="cierre.etapa">${esc(ST.cierre.etapa)}</textarea></div>
+  <div class="field"><label>¿Qué tendría que poder medirse o verificarse para que los demás confíen?</label><textarea data-text="cierre.aprendizaje">${esc(ST.cierre.aprendizaje)}</textarea></div>
+  <div class="row"><button class="btn gold" type="button" id="enviarCierre">Registrar el cierre</button></div>
+  </div></div><div>
+  ${resultadosFinal(F)}
+  <div class="card"><h2>Estado para la próxima sesión</h2><p class="sub">En la simulación C todas las mesas parten del mismo punto, sin importar el resultado de este caso. Este resumen queda registrado para el análisis del facilitador.</p>
+    <div class="row"><button class="btn ghost" type="button" id="copiarEstado">Copiar estado (JSON)</button><button class="btn ghost" type="button" id="descargarEstado">Descargar archivo</button><span class="small" id="copiado"></span></div>
+    <div class="log" style="margin-top:12px">${ST.log.slice(0, 30).map(l => `<div>${esc(l.t.slice(11, 16))} · ${esc(l.txt)}</div>`).join('')}</div>
+  </div></div></div>`;
+}
+
+/* ================== eventos ================== */
+function invalidate(r) {
+  ST.ratif['r' + r] = {};
+  if (r >= 1 && r <= 3) delete ST.calc['r' + r];
+  if (r === 3 || r === 4) ST.calc.r4 = null;
+}
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'mesa') { ST.mesa = t.value; save(); const b = $('empezar'); if (b) b.disabled = !t.value.trim(); return; }
+  if (t.dataset.rep) { ST.reps[t.dataset.rep] = t.value; save(); return; }
+  if (t.dataset.text) { setPath(t.dataset.text, t.value); save(); return; }
+  if (t.dataset.path) { const v = +t.value; setPath(t.dataset.path, v); const lab = $('v_' + t.dataset.path); if (lab) lab.textContent = FMT[t.dataset.fmt](v);
+    if (t.dataset.path === 'acuerdo.p35' && !ST.acuerdo.pExcLibre) ST.acuerdo.pExc = v;
+    if (t.dataset.path === 'acuerdo.pExc') ST.acuerdo.pExcLibre = true; }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.path) { invalidate(ST.ronda); save(); render(); }
+  if (t.dataset.chk) { setPath(t.dataset.chk, t.checked); if (t.dataset.chk.startsWith('acuerdo.clausulas.')) ST.acuerdo.paquete = 'personalizado'; invalidate(ST.ronda); save(); render(); }
+  if (t.dataset.comp) { const k = t.dataset.comp; ST.r4.compromisos = t.checked ? [...new Set([...ST.r4.compromisos, k])] : ST.r4.compromisos.filter(x => x !== k); ST.ratif.r4 = {}; save(); render(); }
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.go) { go(+b.dataset.go); return; }
+  if (b.dataset.seg) { setPath(b.dataset.seg, JSON.parse(b.dataset.val)); invalidate(ST.ronda); save(); render(); return; }
+  if (b.dataset.pkg) { ST.acuerdo.paquete = b.dataset.pkg; aplicarPaquete(b.dataset.pkg); invalidate(ST.ronda); save(); render(); return; }
+  if (b.dataset.toggle) { ST.ui[b.dataset.toggle] = !ST.ui[b.dataset.toggle]; save(); render(); return; }
+  if (b.id === 'verPista') { ST.ui['pistaR' + ST.ronda] = true; log(`Pista abierta en la ronda ${ST.ronda}`); enviar('pista_R' + ST.ronda); save(); render(); return; }
+  if (b.dataset.retira) { ST.retiroUI.quien = ST.retiroUI.quien === b.dataset.retira ? '' : b.dataset.retira; save(); render(); return; }
+  if (b.dataset.ratif) { const [r, x] = b.dataset.ratif.split('.'); ST.ratif[r][x] = !ST.ratif[r][x]; save(); render(); return; }
+  switch (b.id) {
+    case 'empezar': log('Inicio de la mesa'); enviar('inicio'); go(1); break;
+    case 'calcular': calcular(); break;
+    case 'aR2': ST.acuerdo.nmPrecio = CFG.nmRef; go(2); break;
+    case 'firmar': ST.firmado = clone(ST.acuerdo); ST.sinAcuerdoA = false; log('Acuerdo A firmado'); enviar('acuerdo_firmado'); save(); go(3); break;
+    case 'confirmarRetiro': ST.retiro = { quien: ST.retiroUI.quien, motivo: ST.retiroUI.motivo, ronda: 2, propuesta: clone(ST.acuerdo) }; ST.firmado = null;
+      log(`Sin acuerdo: ${ROLES[ST.retiro.quien]} se retira`); enviar('sin_acuerdo_retiro', { quien: ST.retiro.quien, motivo: ST.retiro.motivo }); save(); go(5); break;
+    case 'retomar': log('La mesa retoma la negociación tras un retiro'); enviar('retoma_negociacion'); ST.retiro = null; ST.retiroUI = { quien: '', motivo: '' }; save(); render(); break;
+    case 'cancelarRetiro': ST.retiroUI = { quien: '', motivo: '' }; save(); render(); break;
+    case 'verImpacto': ST.revelado = true; log('Revelación de la sequía'); enviar('revelacion_B'); save(); render(); break;
+    case 'aR4': go(4); break;
+    case 'aCierre': go(5); break;
+    case 'enviarCierre': log('Cierre registrado'); enviar('cierre'); save(); b.textContent = 'Cierre registrado ✓'; break;
+    case 'copiarEstado': copiar(JSON.stringify(estadoFinal(), null, 2)); break;
+    case 'descargarEstado': descargar(); break;
+    case 'openFac': abrirFacilitador(); break;
+  }
+});
+function calcular() {
+  const r = ST.ronda;
+  ST.intentos['r' + r] = (ST.intentos['r' + r] || 0) + 1;
+  if (r === 1 || r === 2) {
+    const a = clone(ST.acuerdo);
+    if (r === 1) Object.assign(a, { nmPrecio: CFG.nmRef, nmExtra: 0, nmAutoriza: true, nmAceptaRetraso: false });
+    const res = calcA(CFG, a); res.acuerdo = a; ST.calc['r' + r] = res;
+    log(`R${r} intento ${ST.intentos['r' + r]}: Andina ${Ssigned(res.andinaVsVara)} vs vara; familia ${Ssigned(res.prodFam5)}; NM ${res.cond.nordmarkt ? 'cumple' : 'no cumple'}`);
+    enviar('calculo_R' + r, { acuerdo: a, andinaVsVara: Math.round(res.andinaVsVara), prodFam5: Math.round(res.prodFam5), cond: res.cond });
+  } else if (r === 3) {
+    const res = calcB(CFG, acuerdoVigente(), ST.b); ST.calc.r3 = res; ST.calc.r4 = null; ST.ratif.r4 = {};
+    log(`R3 intento ${ST.intentos.r3}: siguen ${res.famQuedan} familias; conforme ${t1(res.conforme)} t; déficit ${t1(res.deficit)} t`);
+    enviar('calculo_R3', { b: ST.b, conforme: +res.conforme.toFixed(1), deficit: +res.deficit.toFixed(1), famQuedan: res.famQuedan });
+  } else if (r === 4) {
+    const nm = { concede: ST.calc.r3.deficit <= 0 ? true : !!ST.r4.concede, mantieneOpcion: ST.r4.mantieneOpcion };
+    const res = calcFinal(CFG, acuerdoVigente(), ST.b, nm); ST.calc.r4 = res;
+    log(`R4: NordMarkt ${res.continua ? 'mantiene' : 'termina'} la alianza; Andina ${Ssigned(res.andinaVsVara)}; familia ${Ssigned(res.prodFamVsConv)}`);
+    enviar('resultado_final');
+  }
+  save(); render();
+}
+async function copiar(txt) {
+  try { await navigator.clipboard.writeText(txt); const c = $('copiado'); if (c) c.textContent = 'Copiado'; }
+  catch (e) { mostrarTexto(txt); }
+}
+function descargar() {
+  let enMarco = true; try { enMarco = window.self !== window.top; } catch (e) { }
+  if (enMarco) { mostrarTexto(JSON.stringify(estadoFinal(), null, 2)); return; }
+  try {
+    const blob = new Blob([JSON.stringify(estadoFinal(), null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'andina-estado-' + (ST.mesa || 'mesa').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+  } catch (e) { mostrarTexto(JSON.stringify(estadoFinal(), null, 2)); }
+}
+function mostrarTexto(txt) {
+  $('layer').innerHTML = `<div class="overlay"><div class="modal"><h2>Copien este texto</h2><textarea style="min-height:320px" class="mono" readonly>${esc(txt)}</textarea><div class="row" style="margin-top:10px"><button class="btn" type="button" id="cerrarLayer">Cerrar</button></div></div></div>`;
+  $('cerrarLayer').onclick = () => { $('layer').innerHTML = ''; };
+}
+
+/* ================== panel del facilitador ================== */
+const PARAMS = [
+  ['yConv', 'Rendimiento convencional (t/ha)'], ['y1', 'Rendimiento año 1'], ['y2', 'Rendimiento año 2'], ['y3', 'Rendimiento años 3 a 5'],
+  ['cConv', 'Costo convencional (S/ha)'], ['c1', 'Costo año 1'], ['c2', 'Costo año 2'], ['c3', 'Costo años 3 a 5'],
+  ['inv', 'Inversión de transición (S/ha)'], ['ahorro', 'Ahorro por familia'], ['pConv', 'Precio convencional al productor'],
+  ['opConv', 'Operación Andina convencional (S/t)'], ['opCert', 'Operación Andina certificada (S/t)'], ['ventaConv', 'Venta convencional (S/t)'],
+  ['setup', 'Instalación del programa'], ['nmRef', 'Referencia NordMarkt (S/t)'], ['nmTecho', 'Techo NordMarkt (S/t)'], ['nmMin', 'Mínimo NordMarkt (t)'],
+  ['nmOpcionMax', 'Opción máxima adicional (t)'], ['contingencia', 'Contingencia sequía (S/ha)'], ['spot', 'Precio de acopiadores (S/t)'],
+  ['factorSinMedidas', 'Factor de rendimiento sin medidas'], ['aceptBase', 'Aceptación base de lotes'], ['aceptMonitoreo', '+ aceptación por monitoreo'],
+  ['aceptCapacitacion', '+ aceptación por capacitación'], ['sac', 'Seguro agrícola (S/ha, grupo 3)'], ['umbralLiquidez', 'Umbral de caja para salir (S/familia)'],
+  ['perdidaConvSequia', 'Pérdida convencional por sequía'], ['yRecup', 'Rendimiento años 4 y 5 tras la sequía'],
+  ['gobComite', 'Comité: costo anual (S/)'], ['gobMonitoreo', 'Monitoreo: costo por ha y año (S/)'], ['gobCap1', 'Capacitación año 1 (S/ por ha)'],
+  ['gobCap2', 'Capacitación año 2 (S/ por ha)'], ['comiteParalela', 'Comité: venta a acopiadores (fracción que queda)'],
+  ['minR1', 'Minutos ronda 1'], ['minR2', 'Minutos ronda 2'], ['minR3', 'Minutos ronda 3'], ['minR4', 'Minutos ronda 4'], ['minCierre', 'Minutos cierre'],
+  ['pistaR2', 'Pista ronda 2: minuto en que aparece'], ['pistaR3', 'Pista ronda 3: minuto en que aparece'],
+  ['manoObraExtra', 'Mano de obra extra regenerativa (S/ha, informativo)'], ['insumos1', 'Insumos evitados año 1 (S/ha)'], ['insumos2', 'Insumos evitados año 2 (S/ha)'], ['insumos3', 'Insumos evitados años 3 a 5 (S/ha)']
+];
+let facTab = 'guia';
+function abrirFacilitador() {
+  if (!store.get('andina.facOK', false)) {
+    $('layer').innerHTML = `<div class="overlay"><div class="modal" style="max-width:420px"><h2>Panel del facilitador</h2><div class="field"><label>Clave</label><input type="password" id="pin"></div><div class="row"><button class="btn" type="button" id="pinOK">Entrar</button><button class="btn ghost" type="button" id="cerrarLayer">Cancelar</button></div><div class="small" id="pinErr"></div></div></div>`;
+    $('cerrarLayer').onclick = () => { $('layer').innerHTML = ''; };
+    $('pinOK').onclick = () => { if ($('pin').value === CFG.pin) { store.set('andina.facOK', true); abrirFacilitador(); } else $('pinErr').textContent = 'Clave incorrecta.'; };
+    return;
+  }
+  const tab = { guia: facGuia, mesas: facMesas, parametros: facParametros, conexion: facConexion, mesa: facMesa }[facTab]();
+  $('layer').innerHTML = `<div class="overlay"><div class="modal"><div class="row" style="justify-content:space-between"><h2>Panel del facilitador</h2><button class="btn ghost" type="button" id="cerrarFac">Cerrar</button></div>
+   <div class="tabs">${[['guia', 'Guía'], ['mesas', 'Todas las mesas'], ['parametros', 'Parámetros'], ['conexion', 'Google Sheets'], ['mesa', 'Esta mesa']].map(([k, t]) => `<button type="button" data-tab="${k}" class="${facTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${tab}</div></div>`;
+  $('cerrarFac').onclick = () => { $('layer').innerHTML = ''; render(); };
+  $('layer').querySelectorAll('[data-tab]').forEach(x => x.onclick = () => { facTab = x.dataset.tab; abrirFacilitador(); });
+  bindFac();
+}
+function facGuia() {
+  const ref = calcA(CFG, ACUERDO_REFERENCIA);
+  return `<h3>Agenda de 60 minutos</h3>
+  <table class="tbl"><tr><th>Minuto</th><th>Etapa</th><th>Qué hace el facilitador</th></tr>
+  <tr><td>0–3</td><td>Inicio</td><td>Roles y pantalla. La pre-lectura se hizo antes.</td></tr>
+  <tr><td>3–${3 + CFG.minR1}</td><td>Ronda 1 · bilateral</td><td>Un intento basta: el objetivo es ver que, sin NordMarkt, no alcanza.</td></tr>
+  <tr><td>${3 + CFG.minR1}–${3 + CFG.minR1 + CFG.minR2}</td><td>Ronda 2 · tripartita</td><td>A los ${CFG.pistaR2} minutos (o tras 3 intentos fallidos) la pantalla ofrece una pista. En el minuto 25, las mesas sin acuerdo pasan con los términos de referencia (pestaña «Esta mesa»).</td></tr>
+  <tr><td>25–27</td><td>Revelación</td><td>La pantalla muestra la sequía.</td></tr>
+  <tr><td>27–${27 + CFG.minR3}</td><td>Ronda 3 · sequía</td><td>Tres decisiones: contingencia, laderas y venta a acopiadores. Pista disponible a los ${CFG.pistaR3} minutos.</td></tr>
+  <tr><td>${27 + CFG.minR3}–${27 + CFG.minR3 + CFG.minR4}</td><td>Ronda 4 · NordMarkt</td><td>NordMarkt decide con su criterio confidencial.</td></tr>
+  <tr><td>${27 + CFG.minR3 + CFG.minR4}–60</td><td>Cierre</td><td>Matriz de valor con la columna de suelo, agua y comunidad.</td></tr></table>
+  <div class="note"><b>Pista de la ronda 2:</b> ${PISTAS[2]}<br><b>Pista de la ronda 3:</b> ${PISTAS[3]}</div>
+  <div class="note"><b>Criterio sugerido para NordMarkt (hoja confidencial):</b> aprobar la excepción solo si el déficit es de hasta 10% del mínimo (${t1(CFG.nmMin * 0.9)} t conformes o más) y la propuesta trae al menos tres compromisos verificables. Más allá de eso, la decisión es de quien representa a NordMarkt.</div>
+  <table class="tbl"><tr><th>Lo esperable</th><th>Con las cifras actuales</th></tr>
+  <tr><td>Ronda 1: acuerdo solo bilateral</td><td>No alcanza a la vez la vara de Andina y la conveniencia de las familias con NordMarkt a S/11.500 y 70 t.</td></tr>
+  <tr><td>Ronda 2: acuerdo tripartito de referencia (E2′)</td><td>Andina ${Ssigned(ref.andinaVsVara)} frente a la vara; familia ${Ssigned(ref.prodFam5)} en cinco años.</td></tr>
+  <tr><td>Reglas de la alianza (rondas 1 y 2)</td><td>Tienen costo: comité ${S(CFG.gobComite)}/año, monitoreo ${S(CFG.gobMonitoreo)}/ha/año, capacitación ${S(CFG.gobCap1)} y ${S(CFG.gobCap2)}/ha en los años 1 y 2. Con todas, unos ${S(5 * CFG.gobComite + 5 * CFG.gobMonitoreo * 50 + (CFG.gobCap1 + CFG.gobCap2) * 50)} en cinco años para 50 ha. El fondo se cobra en los años 1 y 2 y se devuelve en el año 5 si no se usa. Marcarlas todas ya no es gratis.</td></tr>
+  <tr><td>Ronda 3: sin reglas de gobernanza</td><td>Venta a acopiadores del ${Math.round(CFG.ventaParalela.ninguna * 100)}% y aceptación de ${Math.round(CFG.aceptBase * 100)}%: déficit grande. Monitoreo, capacitación y sanciones con bono lo reducen a pocas toneladas. Si el precio del año 3 iguala o supera los ${S(CFG.spot)}/t de los acopiadores, nadie vende fuera, haya o no sanciones.</td></tr>
+  <tr><td>Ronda 3: quién paga la contingencia</td><td>Si las familias pagan todo, el grupo de laderas cae bajo el umbral de caja y sale.</td></tr></table>
+  <h3 style="margin-top:14px">Términos de referencia para mesas sin acuerdo</h3><p class="sub">Una mesa sin acuerdo termina en un cierre propio. Solo si usted lo decide, puede seguir al Caso B con estos términos desde la pestaña «Esta mesa».</p>
+  <table class="tbl"><tr><th>Tema</th><th>Término</th></tr>
+  <tr><td>Participación</td><td>${ACUERDO_REFERENCIA.familias} familias, ${ACUERDO_REFERENCIA.familias * CFG.haFam} ha</td></tr>
+  <tr><td>Precio al productor</td><td>${S(ACUERDO_REFERENCIA.p1)}/t año 1 · ${S(ACUERDO_REFERENCIA.p2)}/t año 2 · ${S(ACUERDO_REFERENCIA.p35)}/t certificada años 3 a 5</td></tr>
+  <tr><td>Toneladas certificadas que NordMarkt no compre</td><td>${S(ACUERDO_REFERENCIA.pExc)}/t</td></tr>
+  <tr><td>Inversión de transición</td><td>Andina adelanta el 100% y lo recupera en tres cuotas en los años 3 a 5</td></tr>
+  <tr><td>Certificación</td><td>regenagri, pagada al 100% por Andina</td></tr>
+  <tr><td>NordMarkt</td><td>${S(ACUERDO_REFERENCIA.nmPrecio)}/t FOB Callao · 70 t firmes + opción sobre ${ACUERDO_REFERENCIA.nmExtra} t</td></tr>
+  <tr><td>Reglas de la alianza</td><td>Solo cláusula de revisión ante eventos climáticos extraordinarios (sin costo)</td></tr>
+  <tr><td>Resultado sin sequía</td><td>Andina ${Ssigned(ref.andinaVsVara)} frente a la vara · familia ${Ssigned(ref.prodFam5)} en cinco años</td></tr></table>`;
+}
+function facMesas() {
+  return `<p class="sub">Lee el último estado de cada mesa desde Google Sheets (requiere la URL del Web App). También pueden pegar archivos de estado.</p>
+  <div class="row"><button class="btn" type="button" id="cargarMesas" ${CONN.sheetUrl ? '' : 'disabled'}>Cargar desde Sheets</button><span class="small" id="mesasMsg"></span></div>
+  <div class="field"><label>O peguen uno o varios estados (JSON, uno por línea o una lista)</label><textarea id="pegarEstados" class="mono"></textarea><button class="btn ghost" type="button" id="verPegados">Mostrar</button></div>
+  <div id="tablaMesas"></div>`;
+}
+function tablaMesas(list) {
+  if (!list.length) return '<div class="empty"><b>Sin mesas</b>Todavía no hay estados registrados.</div>';
+  return `<div class="scroll"><table class="tbl"><tr><th>Mesa</th><th>Acuerdo A</th><th>Andina vs vara (A)</th><th>Familias</th><th>Conforme / déficit</th><th>NordMarkt</th><th>Andina final</th><th>Familia final</th><th>Ha regenerativas año 5</th></tr>
+  ${list.map(e => { const a = e.acuerdoA?.terminos || {}, r = e.resultadoB, f = e.economia5anios, n = e.nordmarkt;
+    return `<tr><td><b>${esc(e.mesa)}</b></td><td>${e.acuerdoA?.retiro && !e.acuerdoA?.firmado ? `Sin acuerdo: se retira ${esc(ROLES[e.acuerdoA.retiro.quien] || e.acuerdoA.retiro.quien)}` : a.p35 ? `${S(a.p35)} · ${esc(a.esquema)} · NM ${S(a.nmPrecio)}${a.nmExtra ? ' +' + a.nmExtra + 't' : ''}${e.acuerdoA.porDefecto ? ' (ref.)' : ''}` : '—'}</td>
+    <td class="n">${e.resumen?.A_andinaVsVara != null ? Ssigned(e.resumen.A_andinaVsVara) : '—'}</td><td class="n">${r ? r.familiasQuedan + '/' + (r.familiasQuedan + r.familiasSalen) : '—'}</td>
+    <td class="n">${r ? t1(r.conforme_t) + ' / ' + t1(r.deficit_t) + ' t' : '—'}</td><td>${n ? (n.alianzaContinua ? 'Continúa' : 'Termina') : '—'}</td>
+    <td class="n">${f ? Ssigned(f.andinaVsVara) : '—'}</td><td class="n">${f ? Ssigned(f.porFamiliaVsConv) : '—'}</td><td class="n">${e.sueloAguaComunidad ? e.sueloAguaComunidad.hectareasRegenerativasAnio5 + ' ha' : '—'}</td></tr>`; }).join('')}</table></div>`;
+}
+function facParametros() {
+  return `<p class="sub">Cambios guardados en esta computadora. Para usar los mismos parámetros en todas, copien la configuración y péguenla en cada una.</p>
+  <div class="params">${PARAMS.map(([k, l]) => `<label>${l}<input type="number" step="any" data-cfg="${k}" value="${CFG[k]}"></label>`).join('')}</div>
+  <h3 style="margin-top:14px">Certificaciones</h3><div class="params">${Object.entries(CFG.certs).map(([k, c]) => `<label>${esc(c.nombre)} · instalación<input type="number" data-cert="${k}.inst" value="${c.inst}"></label><label>${esc(c.nombre)} · anual<input type="number" data-cert="${k}.anual" value="${c.anual}"></label><label>${esc(c.nombre)} · primer año<input type="number" data-cert="${k}.anio" value="${c.anio}"></label>`).join('')}</div>
+  <div class="row" style="margin-top:12px"><button class="btn" type="button" id="guardarCfg">Guardar parámetros</button><button class="btn ghost" type="button" id="copiarCfg">Copiar configuración</button><button class="btn ghost" type="button" id="restaurarCfg">Restaurar valores del caso</button></div>
+  <div class="field"><label>Pegar configuración</label><textarea id="pegarCfg" class="mono"></textarea><button class="btn ghost" type="button" id="aplicarCfg">Aplicar</button></div>`;
+}
+function facConexion() {
+  return `<p class="sub">Cada evento de la mesa (cálculos, firma, revelación, resultado y cierre) se envía a la hoja. Si no hay internet, quedan en cola y se reenvían.</p>
+  <div class="field"><label>URL del Web App de Google Apps Script</label><input type="text" id="sheetUrl" value="${esc(CONN.sheetUrl)}" placeholder="https://script.google.com/macros/s/…/exec"></div>
+  <div class="field"><label>Clave compartida (la misma que en el script)</label><input type="text" id="clave" value="${esc(CONN.clave)}"></div>
+  <div class="row"><button class="btn" type="button" id="guardarConn">Guardar y probar</button><span class="small">Eventos en cola: ${queue.length}</span></div>
+  <div class="note warn">Por seguridad, la vista previa publicada en Claude no puede enviar datos a Google. El registro funciona con el archivo HTML abierto en el navegador o alojado en un sitio web.</div>`;
+}
+function facMesa() {
+  return `<div class="row"><button class="btn ghost" type="button" id="irRonda">Desbloquear todas las rondas</button><button class="btn ghost" type="button" id="cargarRef">Cargar acuerdo de referencia</button>${!ST.firmado ? '<button class="btn ghost" type="button" id="continuarRef">Continuar al Caso B con términos de referencia</button>' : ''}<button class="btn ghost" type="button" id="reiniciar">Reiniciar esta mesa</button></div>
+  <div class="small" style="margin-top:10px">Mesa: <b>${esc(ST.mesa || '—')}</b> · ronda ${ST.ronda} · intentos ${JSON.stringify(ST.intentos)}</div>
+  <h3 style="margin-top:12px">Estado actual</h3><textarea class="mono" style="min-height:220px" readonly>${esc(JSON.stringify(estadoFinal(), null, 2))}</textarea>`;
+}
+function bindFac() {
+  const on = (id, f) => { const el = $(id); if (el) el.onclick = f; };
+  on('guardarCfg', () => {
+    document.querySelectorAll('[data-cfg]').forEach(i => { CFG[i.dataset.cfg] = +i.value; });
+    document.querySelectorAll('[data-cert]').forEach(i => { const [k, f] = i.dataset.cert.split('.'); CFG.certs[k][f] = +i.value; });
+    store.set('andina.cfg', CFG); abrirFacilitador();
+  });
+  on('copiarCfg', () => copiar(JSON.stringify(CFG)));
+  on('restaurarCfg', () => { CFG = clone(DEFAULT_CFG); store.del('andina.cfg'); abrirFacilitador(); });
+  on('aplicarCfg', () => { try { CFG = deepMerge(DEFAULT_CFG, JSON.parse($('pegarCfg').value)); store.set('andina.cfg', CFG); abrirFacilitador(); } catch (e) { $('pegarCfg').value = 'Texto no válido'; } });
+  on('guardarConn', () => { CONN.sheetUrl = $('sheetUrl').value.trim(); CONN.clave = $('clave').value.trim(); store.set('andina.conn', CONN); enviar('prueba_conexion'); abrirFacilitador(); });
+  on('cargarMesas', async () => {
+    $('mesasMsg').textContent = 'Cargando…';
+    try { const r = await fetch(CONN.sheetUrl + (CONN.sheetUrl.includes('?') ? '&' : '?') + 'clave=' + encodeURIComponent(CONN.clave)); const data = await r.json();
+      $('tablaMesas').innerHTML = tablaMesas(data); $('mesasMsg').textContent = data.length + ' mesas'; }
+    catch (e) { $('mesasMsg').textContent = 'No se pudo leer la hoja. Revisen la URL y que el Web App sea accesible para cualquiera.'; }
+  });
+  on('verPegados', () => {
+    const raw = $('pegarEstados').value.trim(); let list = [];
+    try { const v = JSON.parse(raw); list = Array.isArray(v) ? v : [v]; } catch (e) { list = raw.split('\n').filter(Boolean).map(l => { try { return JSON.parse(l); } catch (x) { return null; } }).filter(Boolean); }
+    $('tablaMesas').innerHTML = tablaMesas(list);
+  });
+  on('irRonda', () => { ST.max = 5; save(); abrirFacilitador(); });
+  on('continuarRef', () => { ST.firmado = clone(ACUERDO_REFERENCIA); ST.sinAcuerdoA = true; ST.acuerdo = clone(ACUERDO_REFERENCIA); log('Facilitador: continúa al Caso B con términos de referencia'); enviar('continua_con_referencia'); save(); $('layer').innerHTML = ''; go(3); });
+  on('cargarRef', () => { ST.acuerdo = clone(ACUERDO_REFERENCIA); save(); abrirFacilitador(); });
+  on('reiniciar', function () { if (this.dataset.c !== '1') { this.dataset.c = '1'; this.textContent = 'Confirmar reinicio'; return; } ST = estadoNuevo(); save(); $('layer').innerHTML = ''; render(); });
+}
+
+render(); flush();
+})();
+
+</script>
+</body>
+</html>
